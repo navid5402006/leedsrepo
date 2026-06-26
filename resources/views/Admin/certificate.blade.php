@@ -170,25 +170,8 @@
 </head>
 <body>
 <div class="overlay" id="overlay"></div>
-<!-- SIDEBAR --><aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-      <span>Leeds<small>Academy</small></span>
-    </div>
-    <ul class="sidebar-menu">
-      <li class="active"><a href="{{ route('dashboard') }}"><i class="fas fa-th-large"></i> Dashboard</a></li>
-      <li><a href="{{ route('admin.students.index') }}"><i class="fas fa-user-graduate"></i> Students</a></li>
-      <li><a href="{{ route('admin.teachers.index') }}"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
-      <li><a href="{{ route('admin.courses.index') }}"><i class="fas fa-book-open"></i> Courses</a></li>
-      <li><a href="{{ route('admin.enrollments.index') }}"><i class="fas fa-user-plus"></i> Enrollments</a></li>
-      <li><a href="{{ route('admin.fee-payments.index') }}"><i class="fas fa-dollar-sign"></i> Fee Payments</a></li>
-      <li><a href="{{ route('admin.student-cards.index') }}"><i class="fas fa-id-card"></i> Student Cards</a></li>
-      <li><a href="{{ route('admin.certificates.index') }}"><i class="fas fa-certificate"></i> Certificates</a></li>
-      <li><a href="{{ route('admin.reports.index') }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
-      <li><a href="{{ route('admin.enquiries.index') }}"><i class="fas fa-envelope"></i> Enquiries</a></li>
-      <li><a href="{{ route('admin.settings.index') }}"><i class="fas fa-cog"></i> Settings</a></li>
-    </ul>
-  </aside>
+<!-- SIDEBAR -->
+   @include('admin.sidebar')
 <div class="main">
   <header class="topbar">
     <div class="topbar-left">
