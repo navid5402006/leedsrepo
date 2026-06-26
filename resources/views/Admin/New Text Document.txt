@@ -1,0 +1,305 @@
+CERTIFICATE DESIGN REVISIONS
+
+The current certificate is very close to the desired design, but please apply the following corrections and improvements.
+
+TITLE CORRECTION
+
+The certificate title is currently incorrect.
+
+DO NOT use:
+
+"OF COMPLETION CERTIFICATE"
+
+Use exactly:
+
+CERTIFICATE
+
+OF COMPLETION
+
+Display on two separate lines.
+
+Large premium typography.
+
+Center aligned.
+
+Elegant and professional academic appearance.
+
+TOP LOGO
+
+Increase the size of the main Leeds Academy logo at the top center.
+
+Make it more prominent and visible.
+
+The logo should serve as the primary academy branding element.
+
+RIGHT SIDE LOGO
+
+Remove the logo from the right-side award/badge area.
+
+Do not place any logo on the right side.
+
+Keep the design clean and balanced.
+
+The academy logo should only appear:
+
+
+
+1. Top Center Branding
+
+2. Large Center Watermark
+
+TEXT AREA IMPROVEMENTS
+
+Reduce excessive left and right margins.
+
+Allow the certificate content to use more horizontal space.
+
+Improve visual balance.
+
+Increase text width slightly.
+
+TEXT SIZE IMPROVEMENTS
+
+Increase font sizes throughout the certificate:
+
+
+
+* Student Name
+
+* Course Name
+
+* Certificate Body Text
+
+* Certificate Details
+
+Make the certificate easier to read and more premium.
+
+STUDENT NAME
+
+Make student name larger.
+
+It should be the most prominent text element after the title.
+
+Use elegant typography.
+
+COURSE NAME
+
+Increase course name size.
+
+Add better visual emphasis.
+
+CERTIFICATE BODY TEXT
+
+Slightly increase body text size.
+
+Improve readability.
+
+Maintain premium spacing.
+
+FOOTER LAYOUT
+
+Move all footer elements into a professional bottom footer section.
+
+Footer Structure:
+
+Left: Course Organizer Signature Line
+
+Center: QR Code
+
+Right: Director Signature Line
+
+Ensure perfect alignment.
+
+Professional spacing.
+
+Balanced layout.
+
+QR CODE
+
+Place QR Code exactly in the center of the footer.
+
+Keep it professional and print-friendly.
+
+VISUAL ENHANCEMENT
+
+Improve overall visual polish.
+
+Add subtle elegance.
+
+Make the certificate feel more prestigious and premium.
+
+Use refined typography hierarchy.
+
+Improve spacing consistency.
+
+Increase luxury appearance.
+
+The final result should look like a professionally designed international academy certificate.
+
+PRINT & PDF
+
+Maintain:
+
+
+
+* A4 Landscape
+
+* High Resolution
+
+* Print Ready
+
+* Watermark Visible
+
+* Background Graphics Visible
+
+* QR Code Visible
+
+* Signatures Visible
+
+* Logo Visible
+
+No cropping.
+
+No missing graphics.
+
+No quality loss.CERTIFICATE PREVIEW PAGE IMPROVEMENTS
+
+IMPORTANT:
+
+The current certificate preview area is too large and causes scrolling on some screens.
+
+Redesign the preview layout for better usability.
+
+PREVIEW LAYOUT
+
+Use a professional split layout.
+
+Left Side: Certificate Preview
+
+Right Side: Certificate Editor Panel
+
+The entire page should fit within the viewport.
+
+Avoid unnecessary page scrolling.
+
+CERTIFICATE SCALE SYSTEM
+
+Do NOT display the certificate at full actual size inside the preview area.
+
+Instead:
+
+Automatically scale the certificate preview so that the entire A4 Landscape certificate is visible on screen.
+
+Users should be able to see the complete certificate without scrolling.
+
+NO PAGE ZOOMING
+
+Do NOT zoom the entire page.
+
+Do NOT scale the whole application.
+
+Only scale the certificate preview area.
+
+Sidebar, header, editor panel and controls must remain normal size.
+
+CERTIFICATE ZOOM CONTROLS
+
+Add controls above the preview:
+
+Zoom Out (-)
+
+Zoom Percentage
+
+Zoom In (+)
+
+Fit To Screen
+
+Actual Size
+
+These controls should affect ONLY the certificate preview.
+
+They must not affect:
+
+
+
+* Sidebar
+
+* Header
+
+* Forms
+
+* Buttons
+
+* Editor Panel
+
+FIT TO SCREEN
+
+Default mode:
+
+Fit To Screen
+
+Automatically calculate scale so the entire certificate fits inside the available preview area.
+
+No horizontal scrolling.
+
+No vertical scrolling.
+
+Entire certificate visible.
+
+PREVIEW CONTAINER
+
+Use a dedicated preview container.
+
+Center the certificate.
+
+Provide comfortable padding.
+
+Maintain aspect ratio.
+
+Prevent clipping.
+
+PRINT & PDF
+
+IMPORTANT:
+
+Preview scaling must NEVER affect:
+
+
+
+* Printing
+
+* PDF Export
+
+* PNG Export
+
+Print and PDF must always use the original full A4 Landscape size.
+
+Only the preview is scaled.
+
+RESPONSIVE BEHAVIOR
+
+Large Screens: 70% Preview 30% Editor
+
+Medium Screens: 65% Preview 35% Editor
+
+Small Screens: Editor collapsible Preview remains fully visible
+
+The user should always be able to view the complete certificate without page scrolling.
+
+USER EXPERIENCE
+
+The certificate preview should feel similar to:
+
+
+
+* Canva
+
+* Adobe Express
+
+* Figma
+
+* Professional certificate builders
+
+Modern, smooth and easy to use.
+
+The entire certificate should always be visible while editing.
