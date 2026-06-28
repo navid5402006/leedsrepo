@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Leeds Academy · Enquiries Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
@@ -170,6 +171,7 @@
         .stat-icon.green { background: #10B981; }
         .stat-icon.orange { background: #F59E0B; }
         .stat-icon.teal { background: #14B8A6; }
+        .stat-icon.red { background: #EF4444; }
         .stat-info h4 { font-size: 12px; font-weight: 500; color: #94A3B8; letter-spacing: 0.2px; }
         .stat-info .number { font-size: 22px; font-weight: 700; color: #0F172A; letter-spacing: -0.3px; }
 
@@ -285,6 +287,7 @@
         .status-badge.interested { background: #DCFCE7; color: #10B981; }
         .status-badge.converted { background: #EDE7FF; color: #6D4AFF; }
         .status-badge.closed { background: #F1F5F9; color: #64748B; }
+        .status-badge.read { background: #E0E7FF; color: #4F46E5; }
 
         .action-btn {
             background: transparent; border: none; color: #94A3B8;
@@ -292,6 +295,8 @@
             font-size: 14px;
         }
         .action-btn:hover { background: #F1F5F9; color: #1E293B; }
+        .action-btn.danger:hover { color: #EF4444; }
+        .action-btn.success:hover { color: #10B981; }
 
         /* ─── EMPTY STATE ─── */
         .empty-state {
@@ -373,16 +378,18 @@
             align-items: center;
             gap: 6px;
         }
-        .modal-actions .btn-primary { background: #6D4AFF; color: #fff; }
-        .modal-actions .btn-primary:hover { background: #5a3de0; }
-        .modal-actions .btn-success { background: #10B981; color: #fff; }
-        .modal-actions .btn-success:hover { background: #0ea373; }
         .modal-actions .btn-warning { background: #F59E0B; color: #fff; }
         .modal-actions .btn-warning:hover { background: #D97706; }
+        .modal-actions .btn-success { background: #10B981; color: #fff; }
+        .modal-actions .btn-success:hover { background: #0ea373; }
         .modal-actions .btn-outline { background: transparent; border: 1.5px solid #E2E8F0; color: #475569; }
         .modal-actions .btn-outline:hover { background: #F1F5F9; }
         .modal-actions .btn-danger { background: #EF4444; color: #fff; }
         .modal-actions .btn-danger:hover { background: #DC2626; }
+        .modal-actions .btn-primary { background: #6D4AFF; color: #fff; }
+        .modal-actions .btn-primary:hover { background: #5a3de0; }
+        .modal-actions .btn-purple { background: #6D4AFF; color: #fff; }
+        .modal-actions .btn-purple:hover { background: #5a3de0; }
 
         /* Timeline */
         .timeline {
@@ -418,6 +425,7 @@
         .timeline-item .dot.green { background: #10B981; }
         .timeline-item .dot.yellow { background: #F59E0B; }
         .timeline-item .dot.blue { background: #3B82F6; }
+        .timeline-item .dot.gray { background: #94A3B8; }
         .timeline-item .time { font-size: 11px; color: #94A3B8; }
         .timeline-item .desc { font-size: 13px; color: #1E293B; }
 
@@ -436,22 +444,62 @@
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 45; }
         .overlay.active { display: block; }
 
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status dropdown in table */
+        .status-select {
+            padding: 4px 8px;
+            border-radius: 30px;
+            border: 1.5px solid #E2E8F0;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            background: #F8FAFC;
+            color: #1E293B;
+            outline: none;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .status-select:focus {
+            border-color: #6D4AFF;
+            box-shadow: 0 0 0 3px rgba(109,74,255,0.08);
+        }
+        .status-select option.new { color: #2563EB; }
+        .status-select option.contacted { color: #D97706; }
+        .status-select option.interested { color: #10B981; }
+        .status-select option.converted { color: #6D4AFF; }
+        .status-select option.closed { color: #64748B; }
+
         @media (max-width: 992px) {
             .modal-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 270px; position: fixed; top:0; left:0; height:100%; }
+            .sidebar { transform: translateX(-100%); width: 270px; position: fixed; top:0; left:0; height:100%; z-index: 100; }
             .sidebar.open { transform: translateX(0); }
             .topbar-left .menu-toggle { display: block; }
             .search-box { width: 140px; }
             .content { padding: 16px; }
             .topbar { padding: 10px 16px; }
-            .stats-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
             .filters-row select, .filters-row input { min-width: 100%; flex: 1 1 100%; }
-            .modal { padding: 20px; }
+            .modal { padding: 20px; margin: 10px; }
             .modal-actions { flex-direction: column; }
             .modal-actions .btn { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -460,8 +508,7 @@
     <div class="overlay" id="overlay"></div>
 
     <!-- ─── SIDEBAR ─── -->
-      @include('admin.sidebar')
-
+    @include('admin.sidebar')
 
     <!-- ─── MAIN ─── -->
     <div class="main">
@@ -476,16 +523,23 @@
                 </div>
             </div>
             <div class="topbar-right">
-                <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search enquiries..." /></div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search enquiries..." onkeyup="if(event.key==='Enter') applyFilters()" />
+                </div>
                 <button class="notif-btn"><i class="fas fa-bell"></i><span class="notif-badge">3</span></button>
                 <div class="profile-dropdown-wrap">
-                    <button class="profile-btn" id="profileBtn"><img src="#" alt="A" style="background:#6D4AFF; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600;"> <span>Admin</span> <i class="fas fa-chevron-down" style="font-size:11px; margin-left:4px;"></i></button>
+                    <button class="profile-btn" id="profileBtn">
+                        <span style="background:#6D4AFF; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:12px;">A</span>
+                        <span>Admin</span>
+                        <i class="fas fa-chevron-down" style="font-size:11px; margin-left:4px;"></i>
+                    </button>
                     <div class="dropdown-menu" id="profileDropdown">
                         <a href="#"><i class="fas fa-user"></i> My Profile</a>
                         <a href="#"><i class="fas fa-sliders-h"></i> Settings</a>
                         <a href="#"><i class="fas fa-key"></i> Change Password</a>
                         <div class="dropdown-divider"></div>
-                        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a href="{{ route('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </div>
@@ -496,24 +550,77 @@
 
             <!-- STATS -->
             <div class="stats-grid">
-                <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-envelope"></i></div><div class="stat-info"><h4>Total Enquiries</h4><div class="number">247</div></div></div>
-                <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-clock"></i></div><div class="stat-info"><h4>New Enquiries</h4><div class="number">18</div></div></div>
-                <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-phone"></i></div><div class="stat-info"><h4>Contacted</h4><div class="number">42</div></div></div>
-                <div class="stat-card"><div class="stat-icon green"><i class="fas fa-user-check"></i></div><div class="stat-info"><h4>Converted to Student</h4><div class="number">89</div></div></div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-envelope"></i></div>
+                    <div class="stat-info">
+                        <h4>Total Enquiries</h4>
+                        <div class="number">{{ $stats['total'] ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h4>New Enquiries</h4>
+                        <div class="number">{{ $stats['new'] ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-phone"></i></div>
+                    <div class="stat-info">
+                        <h4>Contacted</h4>
+                        <div class="number">{{ $stats['contacted'] ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon teal"><i class="fas fa-star"></i></div>
+                    <div class="stat-info">
+                        <h4>Interested</h4>
+                        <div class="number">{{ $stats['interested'] ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-info">
+                        <h4>Converted</h4>
+                        <div class="number">{{ $stats['converted'] ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+                    <div class="stat-info">
+                        <h4>Closed</h4>
+                        <div class="number">{{ $stats['closed'] ?? 0 }}</div>
+                    </div>
+                </div>
             </div>
 
             <!-- FILTERS -->
             <div class="filters-bar">
-                <div class="filters-row">
-                    <input type="text" placeholder="Search by name, phone or email..." style="flex:1.5; min-width:180px;">
-                    <select><option>All Status</option><option>New</option><option>Contacted</option><option>Interested</option><option>Converted</option><option>Closed</option></select>
-                    <input type="date" placeholder="From" style="min-width:130px;">
-                    <select><option>All Courses</option><option>Web Development</option><option>Graphic Design</option><option>MS Office</option></select>
-                    <div class="filter-actions">
-                        <button class="btn-filter primary">Apply Filters</button>
-                        <button class="btn-filter outline">Reset</button>
+                <form id="filterForm" onsubmit="applyFilters(event)">
+                    <div class="filters-row">
+                        <input type="text" name="search" id="filterSearch" placeholder="Search by name, phone or email..." style="flex:1.5; min-width:180px;" value="{{ request('search') }}">
+                        <select name="status" id="filterStatus">
+                            <option value="">All Status</option>
+                            <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
+                            <option value="contacted" {{ request('status') == 'contacted' ? 'selected' : '' }}>Contacted</option>
+                            <option value="interested" {{ request('status') == 'interested' ? 'selected' : '' }}>Interested</option>
+                            <option value="converted" {{ request('status') == 'converted' ? 'selected' : '' }}>Converted</option>
+                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                        </select>
+                        <input type="date" name="from_date" id="filterFrom" placeholder="From" style="min-width:130px;" value="{{ request('from_date') }}">
+                        <input type="date" name="to_date" id="filterTo" placeholder="To" style="min-width:130px;" value="{{ request('to_date') }}">
+                        <select name="course" id="filterCourse">
+                            <option value="">All Courses</option>
+                            @foreach($courses ?? [] as $course)
+                                <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
+                            @endforeach
+                        </select>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn-filter primary">Apply Filters</button>
+                            <button type="reset" class="btn-filter outline" onclick="resetFilters()">Reset</button>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
 
             <!-- TABLE -->
@@ -521,78 +628,70 @@
                 <div class="table-header">
                     <h4><i class="fas fa-list" style="color:#6D4AFF;"></i> Enquiry List</h4>
                     <div class="actions">
-                        <button class="btn-refresh" onclick="showToast('🔄 Refreshed')"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="btn-refresh" onclick="refreshTable()"><i class="fas fa-sync-alt"></i> Refresh</button>
                     </div>
                 </div>
 
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Course Interest</th><th>Inquiry Date</th><th>Status</th><th>Actions</th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Course Interest</th>
+                            <th>Inquiry Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="enquiryTableBody">
-                        <tr>
-                            <td>#ENQ-001</td><td><strong>Ahmed Hassan</strong></td><td>+92 300 1234</td><td>ahmed@email.com</td><td>Web Development</td><td>15 Apr 2026</td>
-                            <td><span class="status-badge new">New</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openEnquiryModal(0)" title="View Details"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn" onclick="showToast('📝 Edit status')" title="Edit Status"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="showToast('🔄 Converting to student...')" title="Convert to Student"><i class="fas fa-user-plus"></i></button>
-                                <button class="action-btn" onclick="showToast('🗑️ Deleted')" title="Delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#ENQ-002</td><td><strong>Fatima Noor</strong></td><td>+92 312 5678</td><td>fatima@email.com</td><td>Graphic Design</td><td>14 Apr 2026</td>
-                            <td><span class="status-badge contacted">Contacted</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openEnquiryModal(1)" title="View Details"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn" onclick="showToast('📝 Edit status')" title="Edit Status"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="showToast('🔄 Converting to student...')" title="Convert to Student"><i class="fas fa-user-plus"></i></button>
-                                <button class="action-btn" onclick="showToast('🗑️ Deleted')" title="Delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#ENQ-003</td><td><strong>Usman Raza</strong></td><td>+92 321 9012</td><td>usman@email.com</td><td>MS Office</td><td>12 Apr 2026</td>
-                            <td><span class="status-badge interested">Interested</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openEnquiryModal(2)" title="View Details"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn" onclick="showToast('📝 Edit status')" title="Edit Status"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="showToast('🔄 Converting to student...')" title="Convert to Student"><i class="fas fa-user-plus"></i></button>
-                                <button class="action-btn" onclick="showToast('🗑️ Deleted')" title="Delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#ENQ-004</td><td><strong>Sara Khan</strong></td><td>+92 334 4567</td><td>sara@email.com</td><td>SEO</td><td>10 Apr 2026</td>
-                            <td><span class="status-badge converted">Converted</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openEnquiryModal(3)" title="View Details"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn" onclick="showToast('📝 Edit status')" title="Edit Status"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="showToast('🔄 Converting to student...')" title="Convert to Student"><i class="fas fa-user-plus"></i></button>
-                                <button class="action-btn" onclick="showToast('🗑️ Deleted')" title="Delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#ENQ-005</td><td><strong>Navid Khan</strong></td><td>+92 345 7890</td><td>navid@email.com</td><td>Web Development</td><td>08 Apr 2026</td>
-                            <td><span class="status-badge closed">Closed</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openEnquiryModal(4)" title="View Details"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn" onclick="showToast('📝 Edit status')" title="Edit Status"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn" onclick="showToast('🔄 Converting to student...')" title="Convert to Student"><i class="fas fa-user-plus"></i></button>
-                                <button class="action-btn" onclick="showToast('🗑️ Deleted')" title="Delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
+                        @forelse($enquiries as $enquiry)
+                            <tr id="enquiry-row-{{ $enquiry->id }}">
+                                <td>#{{ str_pad($enquiry->id, 3, '0', STR_PAD_LEFT) }}</td>
+                                <td><strong>{{ $enquiry->full_name }}</strong></td>
+                                <td>{{ $enquiry->phone_number }}</td>
+                                <td>{{ $enquiry->email }}</td>
+                                <td>{{ $enquiry->interested_course ?? 'N/A' }}</td>
+                                <td>{{ $enquiry->created_at->format('d M Y') }}</td>
+                                <td>
+                                   <select class="status-select" onchange="updateStatus({{ $enquiry->id }}, this.value)" id="status-{{ $enquiry->id }}">
+    <option value="new" {{ $enquiry->status == 'new' ? 'selected' : '' }}>New</option>
+    <option value="contacted" {{ $enquiry->status == 'contacted' ? 'selected' : '' }}>Contacted</option>
+    <option value="interested" {{ $enquiry->status == 'interested' ? 'selected' : '' }}>Interested</option>
+    <option value="converted" {{ $enquiry->status == 'converted' ? 'selected' : '' }}>Converted</option>
+    <option value="closed" {{ $enquiry->status == 'closed' ? 'selected' : '' }}>Closed</option>
+</select>
+                                </td>
+                                <td>
+                                    <button class="action-btn" onclick="openEnquiryModal({{ $enquiry->id }})" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn danger" onclick="deleteEnquiry({{ $enquiry->id }})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <h4>No Enquiries Found</h4>
+                                        <p>There are no enquiries in the system yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:8px;">
-                    <span style="font-size:13px; color:#94A3B8;">Showing 1-5 of 247 enquiries</span>
+                    <span style="font-size:13px; color:#94A3B8;">
+                        Showing {{ $enquiries->firstItem() ?? 0 }} to {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }} enquiries
+                    </span>
                     <div style="display:flex; gap:4px;">
-                        <button class="btn-filter outline" style="padding:4px 14px; font-size:12px;">Prev</button>
-                        <button class="btn-filter primary" style="padding:4px 14px; font-size:12px;">1</button>
-                        <button class="btn-filter outline" style="padding:4px 14px; font-size:12px;">2</button>
-                        <button class="btn-filter outline" style="padding:4px 14px; font-size:12px;">3</button>
-                        <button class="btn-filter outline" style="padding:4px 14px; font-size:12px;">Next</button>
+                        {{ $enquiries->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -611,48 +710,66 @@
             <div class="modal-grid">
                 <!-- LEFT: Details -->
                 <div class="modal-left">
-                    <div class="detail-row"><span class="label">Full Name</span><span class="value" id="modalName">Ahmed Hassan</span></div>
-                    <div class="detail-row"><span class="label">Phone Number</span><span class="value" id="modalPhone">+92 300 1234</span></div>
-                    <div class="detail-row"><span class="label">Email Address</span><span class="value" id="modalEmail">ahmed@email.com</span></div>
-                    <div class="detail-row"><span class="label">Interested Course</span><span class="value" id="modalCourse">Web Development</span></div>
-                    <div class="detail-row"><span class="label">Inquiry Date</span><span class="value" id="modalDate">15 Apr 2026</span></div>
-                    <div class="detail-row"><span class="label">Source</span><span class="value">Website Contact Form</span></div>
-                    <div class="detail-row"><span class="label">Status</span><span class="value" id="modalStatus"><span class="status-badge new">New</span></span></div>
+                    <div class="detail-row">
+                        <span class="label">Full Name</span>
+                        <span class="value" id="modalName">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Phone Number</span>
+                        <span class="value" id="modalPhone">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Email Address</span>
+                        <span class="value" id="modalEmail">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Interested Course</span>
+                        <span class="value" id="modalCourse">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Inquiry Date</span>
+                        <span class="value" id="modalDate">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Source</span>
+                        <span class="value">Website Contact Form</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Status</span>
+                        <span class="value" id="modalStatus">-</span>
+                    </div>
 
                     <div class="message-card">
                         <div class="label">Message</div>
-                        <div class="text" id="modalMessage">
-                            "I want to join the Web Development course. Please provide details about fee structure, duration and class timings."
-                        </div>
+                        <div class="text" id="modalMessage">-</div>
                     </div>
 
                     <div class="modal-actions">
-                        <button class="btn btn-warning" onclick="updateStatus('contacted')"><i class="fas fa-phone"></i> Mark Contacted</button>
-                        <button class="btn btn-success" onclick="updateStatus('interested')"><i class="fas fa-star"></i> Mark Interested</button>
-                        <button class="btn btn-primary" onclick="convertToStudent()"><i class="fas fa-user-plus"></i> Convert to Student</button>
-                        <button class="btn btn-outline" onclick="updateStatus('closed')"><i class="fas fa-check-circle"></i> Close</button>
-                        <button class="btn btn-danger" onclick="showToast('🗑️ Deleted')"><i class="fas fa-trash"></i> Delete</button>
+                        <button class="btn btn-warning" onclick="updateStatus(currentEnquiryId, 'contacted')">
+                            <i class="fas fa-phone"></i> Mark Contacted
+                        </button>
+                        <button class="btn btn-success" onclick="updateStatus(currentEnquiryId, 'interested')">
+                            <i class="fas fa-star"></i> Mark Interested
+                        </button>
+                        <button class="btn btn-outline" onclick="updateStatus(currentEnquiryId, 'closed')">
+                            <i class="fas fa-check-circle"></i> Close
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteEnquiry(currentEnquiryId)">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
                     </div>
                 </div>
 
                 <!-- RIGHT: Timeline -->
                 <div class="modal-right">
-                    <h4 style="font-size:15px; font-weight:600; margin-bottom:14px; color:#0F172A;"><i class="fas fa-history" style="color:#6D4AFF;"></i> Activity Timeline</h4>
+                    <h4 style="font-size:15px; font-weight:600; margin-bottom:14px; color:#0F172A;">
+                        <i class="fas fa-history" style="color:#6D4AFF;"></i> Activity Timeline
+                    </h4>
                     <div class="timeline" id="modalTimeline">
                         <div class="timeline-item">
                             <div class="dot blue"></div>
-                            <div class="time">15 Apr 2026, 10:30 AM</div>
-                            <div class="desc">Inquiry Received via Website</div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="dot yellow"></div>
-                            <div class="time">15 Apr 2026, 02:15 PM</div>
-                            <div class="desc">Contacted by Admin</div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="dot purple"></div>
-                            <div class="time">16 Apr 2026, 11:00 AM</div>
-                            <div class="desc">Marked as Interested</div>
+                            <div class="time">Loading...</div>
+                            <div class="desc">Please wait</div>
                         </div>
                     </div>
                 </div>
@@ -664,70 +781,84 @@
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">Action completed</span></div>
 
     <script>
-        // ─── Enquiry Data ───
-        const enquiryData = [
-            { name: 'Ahmed Hassan', phone: '+92 300 1234', email: 'ahmed@email.com', course: 'Web Development', date: '15 Apr 2026', status: 'new', message: '"I want to join the Web Development course. Please provide details about fee structure, duration and class timings."', timeline: [
-                { time: '15 Apr 2026, 10:30 AM', desc: 'Inquiry Received via Website', dot: 'blue' },
-                { time: '15 Apr 2026, 02:15 PM', desc: 'Contacted by Admin', dot: 'yellow' }
-            ]},
-            { name: 'Fatima Noor', phone: '+92 312 5678', email: 'fatima@email.com', course: 'Graphic Design', date: '14 Apr 2026', status: 'contacted', message: '"I am interested in the Graphic Design course. Please send me the course outline and fee details."', timeline: [
-                { time: '14 Apr 2026, 09:00 AM', desc: 'Inquiry Received via Website', dot: 'blue' },
-                { time: '14 Apr 2026, 11:30 AM', desc: 'Contacted by Admin', dot: 'yellow' }
-            ]},
-            { name: 'Usman Raza', phone: '+92 321 9012', email: 'usman@email.com', course: 'MS Office', date: '12 Apr 2026', status: 'interested', message: '"I need to learn MS Office for my job. Please tell me about the schedule and fees."', timeline: [
-                { time: '12 Apr 2026, 08:45 AM', desc: 'Inquiry Received via Website', dot: 'blue' },
-                { time: '12 Apr 2026, 01:00 PM', desc: 'Contacted by Admin', dot: 'yellow' },
-                { time: '13 Apr 2026, 10:00 AM', desc: 'Marked as Interested', dot: 'purple' }
-            ]},
-            { name: 'Sara Khan', phone: '+92 334 4567', email: 'sara@email.com', course: 'SEO', date: '10 Apr 2026', status: 'converted', message: '"I want to learn SEO and Digital Marketing. Please provide complete details."', timeline: [
-                { time: '10 Apr 2026, 11:20 AM', desc: 'Inquiry Received via Website', dot: 'blue' },
-                { time: '10 Apr 2026, 03:00 PM', desc: 'Contacted by Admin', dot: 'yellow' },
-                { time: '11 Apr 2026, 09:00 AM', desc: 'Marked as Interested', dot: 'purple' },
-                { time: '12 Apr 2026, 02:00 PM', desc: 'Converted to Student', dot: 'green' }
-            ]},
-            { name: 'Navid Khan', phone: '+92 345 7890', email: 'navid@email.com', course: 'Web Development', date: '08 Apr 2026', status: 'closed', message: '"I would like to join the Web Development course but need to confirm my schedule."', timeline: [
-                { time: '08 Apr 2026, 10:00 AM', desc: 'Inquiry Received via Website', dot: 'blue' },
-                { time: '08 Apr 2026, 12:30 PM', desc: 'Contacted by Admin', dot: 'yellow' },
-                { time: '09 Apr 2026, 11:00 AM', desc: 'Enquiry Closed', dot: 'gray' }
-            ]}
-        ];
-
-        let currentEnquiryIndex = 0;
+        let currentEnquiryId = null;
 
         // ─── Open Enquiry Modal ───
-        function openEnquiryModal(index) {
-            currentEnquiryIndex = index;
-            const data = enquiryData[index];
-            if (!data) return;
-
-            document.getElementById('modalName').textContent = data.name;
-            document.getElementById('modalPhone').textContent = data.phone;
-            document.getElementById('modalEmail').textContent = data.email;
-            document.getElementById('modalCourse').textContent = data.course;
-            document.getElementById('modalDate').textContent = data.date;
-            document.getElementById('modalMessage').textContent = data.message;
-
-            // Status badge
-            const statusMap = {
-                new: '<span class="status-badge new">New</span>',
-                contacted: '<span class="status-badge contacted">Contacted</span>',
-                interested: '<span class="status-badge interested">Interested</span>',
-                converted: '<span class="status-badge converted">Converted</span>',
-                closed: '<span class="status-badge closed">Closed</span>'
-            };
-            document.getElementById('modalStatus').innerHTML = statusMap[data.status] || statusMap.new;
-
-            // Timeline
-            const timelineContainer = document.getElementById('modalTimeline');
-            timelineContainer.innerHTML = data.timeline.map(item => `
+        function openEnquiryModal(id) {
+            currentEnquiryId = id;
+            
+            // Show loading state
+            document.getElementById('modalName').textContent = 'Loading...';
+            document.getElementById('modalPhone').textContent = 'Loading...';
+            document.getElementById('modalEmail').textContent = 'Loading...';
+            document.getElementById('modalCourse').textContent = 'Loading...';
+            document.getElementById('modalDate').textContent = 'Loading...';
+            document.getElementById('modalMessage').textContent = 'Loading...';
+            document.getElementById('modalTimeline').innerHTML = `
                 <div class="timeline-item">
-                    <div class="dot ${item.dot}"></div>
-                    <div class="time">${item.time}</div>
-                    <div class="desc">${item.desc}</div>
+                    <div class="dot blue"></div>
+                    <div class="time">Loading...</div>
+                    <div class="desc">Fetching enquiry details...</div>
                 </div>
-            `).join('');
-
+            `;
+            
             document.getElementById('enquiryModal').classList.add('active');
+
+            // Fetch enquiry data
+            fetch(`/admin/enquiries/${id}`, {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const enquiry = data.data;
+                    document.getElementById('modalName').textContent = enquiry.full_name;
+                    document.getElementById('modalPhone').textContent = enquiry.phone_number;
+                    document.getElementById('modalEmail').textContent = enquiry.email;
+                    document.getElementById('modalCourse').textContent = enquiry.interested_course || 'N/A';
+                    document.getElementById('modalDate').textContent = new Date(enquiry.created_at).toLocaleDateString('en-GB', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    });
+                    document.getElementById('modalMessage').textContent = enquiry.message || 'No message provided.';
+
+                    // Status
+                    const statusMap = {
+                        new: '<span class="status-badge new">New</span>',
+                        contacted: '<span class="status-badge contacted">Contacted</span>',
+                        interested: '<span class="status-badge interested">Interested</span>',
+                        converted: '<span class="status-badge converted">Converted</span>',
+                        closed: '<span class="status-badge closed">Closed</span>'
+                    };
+                    document.getElementById('modalStatus').innerHTML = statusMap[enquiry.status] || statusMap.new;
+
+                    // Timeline
+                    const timeline = enquiry.timeline || [
+                        {
+                            time: new Date(enquiry.created_at).toLocaleString('en-GB', {
+                                day: '2-digit', month: 'short', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', hour12: true
+                            }),
+                            desc: 'Inquiry Received via Website',
+                            dot: 'blue'
+                        }
+                    ];
+                    
+                    document.getElementById('modalTimeline').innerHTML = timeline.map(item => `
+                        <div class="timeline-item">
+                            <div class="dot ${item.dot || 'blue'}"></div>
+                            <div class="time">${item.time}</div>
+                            <div class="desc">${item.desc}</div>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('❌ Error loading enquiry details');
+            });
         }
 
         // ─── Close Modal ───
@@ -736,71 +867,141 @@
         }
 
         // ─── Update Status ───
-        function updateStatus(status) {
-            const data = enquiryData[currentEnquiryIndex];
-            if (!data) return;
-            data.status = status;
-            
-            // Add timeline entry
-            const statusLabels = {
-                contacted: 'Contacted by Admin',
-                interested: 'Marked as Interested',
-                converted: 'Converted to Student',
-                closed: 'Enquiry Closed'
-            };
-            const dotColors = {
-                contacted: 'yellow',
-                interested: 'purple',
-                converted: 'green',
-                closed: 'gray'
-            };
-            const now = new Date();
-            const timeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + 
-                           now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-            
-            data.timeline.push({
-                time: timeStr,
-                desc: statusLabels[status] || status,
-                dot: dotColors[status] || 'blue'
+        function updateStatus(id, status) {
+            if (!id) return;
+
+            fetch(`/admin/enquiries/${id}/status`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const statusLabels = {
+                        new: 'New',
+                        contacted: 'Contacted',
+                        interested: 'Interested',
+                        converted: 'Converted',
+                        closed: 'Closed'
+                    };
+                    showToast('✅ Status updated to ' + (statusLabels[status] || status));
+                    
+                    // Update dropdown in table
+                    const select = document.getElementById(`status-${id}`);
+                    if (select) {
+                        select.value = status;
+                        // Update the select style to match status
+                        select.className = 'status-select';
+                    }
+                    
+                    // Refresh stats
+                    refreshStats();
+                    
+                    // Close modal if open
+                    closeModal('enquiryModal');
+                } else {
+                    showToast('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('❌ Error updating status');
             });
-
-            // Reopen modal to refresh
-            closeModal('enquiryModal');
-            setTimeout(() => openEnquiryModal(currentEnquiryIndex), 200);
-            showToast('✅ Status updated to ' + status.charAt(0).toUpperCase() + status.slice(1));
-            
-            // Update table row status
-            updateTableRow(currentEnquiryIndex, status);
         }
 
-        // ─── Update Table Row ───
-        function updateTableRow(index, status) {
-            const rows = document.querySelectorAll('#enquiryTableBody tr');
-            if (rows[index]) {
-                const statusCell = rows[index].querySelectorAll('td')[6];
-                const statusMap = {
-                    new: '<span class="status-badge new">New</span>',
-                    contacted: '<span class="status-badge contacted">Contacted</span>',
-                    interested: '<span class="status-badge interested">Interested</span>',
-                    converted: '<span class="status-badge converted">Converted</span>',
-                    closed: '<span class="status-badge closed">Closed</span>'
-                };
-                statusCell.innerHTML = statusMap[status] || statusMap.new;
+        // ─── Delete Enquiry ───
+        function deleteEnquiry(id) {
+            if (!id) return;
+            if (!confirm('Are you sure you want to delete this enquiry?')) return;
+
+            fetch(`/admin/enquiries/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('🗑️ ' + data.message);
+                    
+                    // Remove row
+                    const row = document.getElementById(`enquiry-row-${id}`);
+                    if (row) row.remove();
+                    
+                    // Refresh stats
+                    refreshStats();
+                    
+                    // Close modal if open
+                    closeModal('enquiryModal');
+                } else {
+                    showToast('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('❌ Error deleting enquiry');
+            });
+        }
+
+        // ─── Refresh Stats ───
+        function refreshStats() {
+            fetch('/admin/enquiries/stats', {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const stats = data.data;
+                    const statNumbers = document.querySelectorAll('.stat-info .number');
+                    if (statNumbers.length >= 6) {
+                        statNumbers[0].textContent = stats.total || 0;
+                        statNumbers[1].textContent = stats.new || 0;
+                        statNumbers[2].textContent = stats.contacted || 0;
+                        statNumbers[3].textContent = stats.interested || 0;
+                        statNumbers[4].textContent = stats.converted || 0;
+                        statNumbers[5].textContent = stats.closed || 0;
+                    }
+                }
+            })
+            .catch(error => console.error('Error refreshing stats:', error));
+        }
+
+        // ─── Apply Filters ───
+        function applyFilters(event) {
+            if (event) event.preventDefault();
+            
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) params.append(key, value);
             }
+            
+            window.location.href = '/admin/enquiries?' + params.toString();
         }
 
-        // ─── Convert to Student ───
-        function convertToStudent() {
-            const data = enquiryData[currentEnquiryIndex];
-            if (!data) return;
-            
-            // Update status
-            updateStatus('converted');
-            
-            // Auto-fill student registration (simulated)
+        // ─── Reset Filters ───
+        function resetFilters() {
+            document.getElementById('filterForm').reset();
+            window.location.href = '/admin/enquiries';
+        }
+
+        // ─── Refresh Table ───
+        function refreshTable() {
+            showToast('🔄 Refreshing...');
             setTimeout(() => {
-                showToast('🎓 Student registration opened with pre-filled data from enquiry!');
-                // In a real system, this would open the student registration modal
+                window.location.reload();
             }, 500);
         }
 
@@ -824,30 +1025,25 @@
         // ─── Profile Dropdown ───
         const profileBtn = document.getElementById('profileBtn');
         const profileDropdown = document.getElementById('profileDropdown');
-        profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
+        profileBtn.addEventListener('click', function(e) { 
+            e.stopPropagation(); 
+            profileDropdown.classList.toggle('open'); 
+        });
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
-        });
-
-        // ─── Filter Buttons ───
-        document.querySelectorAll('.btn-filter.primary').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.textContent.includes('Apply')) {
-                    showToast('✅ Filters applied successfully');
-                }
-            });
-        });
-        document.querySelectorAll('.btn-filter.outline').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.textContent.includes('Reset')) {
-                    showToast('🔄 Filters reset');
-                }
-            });
         });
 
         // ─── Modal Overlay Close ───
         document.getElementById('enquiryModal').addEventListener('click', function(e) {
             if (e.target === this) this.classList.remove('active');
+        });
+
+        // ─── Search on Enter ───
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('filterSearch').value = this.value;
+                applyFilters(e);
+            }
         });
     </script>
 

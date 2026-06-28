@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('interested_course')->nullable();
             $table->date('inquiry_date')->nullable();
             $table->string('source')->nullable()->default('Website Contact Form');
-            $table->enum('status', ['new', 'in_progress', 'resolved', 'closed'])->default('new');
+            $table->enum('status', ['new', 'contacted', 'interested', 'converted', 'closed'])->default('new');
             $table->text('message')->nullable();
             $table->string('qualification')->nullable();
             $table->string('city')->nullable();

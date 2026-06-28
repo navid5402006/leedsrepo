@@ -17,6 +17,8 @@ class Teacher extends Model
         'phone',
         'email',
         'picture',
+        'teacher_id',
+        'specialization',
     ];
 
     public function courses(): HasMany

@@ -15,6 +15,7 @@ class StudentCard extends Model
         'card_no',
         'issue_date',
         'template',
+        'reg_no'
     ];
 
     protected $casts = [
