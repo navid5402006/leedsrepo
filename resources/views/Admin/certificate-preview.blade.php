@@ -232,23 +232,52 @@
             padding:36px 120px 24px 120px;
         }
 
+        /* ── LOGO HEADER: logo left, LEEDS+Institute stacked right ── */
         .c-logo{
-            display:flex;flex-direction:column;align-items:center;
-            margin-bottom:10px;flex-shrink:0;
+            display:flex;
+            flex-direction:row;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+            margin-bottom:31px;
+            flex-shrink:0;
         }
         .c-logo img{
-            width:150px;height:150px;
+            width:135pxpx;height:135px;
             object-fit:cover;
             border-radius:50%;
             display:block;
             border:2.5px solid #D4AF37;
             box-shadow:0 4px 16px rgba(0,0,0,.2);
+            flex-shrink:0;
         }
-        .c-logo .c-org{
+        .c-logo-text{
+            display:flex;
+            flex-direction:column;
+            align-items:flex-start;
+            justify-content:center;
+            line-height:1;
+        }
+        .c-logo-name{
             font-family:'Playfair Display',serif;
-            font-size:10.5px;font-weight:700;
-            letter-spacing:5.5px;color:#071B3B;
-            text-transform:uppercase;margin-top:6px;
+            font-size:46px;
+            font-weight:900;
+            color:#071B3B;
+            letter-spacing:6px;
+            text-transform:uppercase;
+            line-height:1.5;
+            display:block;
+        }
+        .c-logo-sub{
+            font-family:'Playfair Display',serif;
+            font-size:21px;
+            font-weight:600;
+            color:#071B3B;
+            letter-spacing:4px;
+            text-transform:uppercase;
+            margin-top:0px;
+            margin-left:13px;
+            display:block;
         }
 
         .c-ornline{
@@ -268,7 +297,7 @@
             display:block;margin-bottom:4px;
         }
         .c-title-main{
-            font-family:'Playfair Display',serif;
+            font-family:inter;
             font-size:60px;font-weight:900;
             color:#071B3B;letter-spacing:5px;
             text-transform:uppercase;line-height:1.1;
@@ -674,10 +703,13 @@
                             <!-- CONTENT -->
                             <div class="c-content">
 
-                                <!-- Logo -->
+                                <!-- ── LOGO HEADER: circular logo left, LEEDS + Institute right ── -->
                                 <div class="c-logo">
                                     <img id="logoImg" src="https://cdn.b12.io/client_media/sqZcMGxP/c4e2ba28-acd2-11ef-a4fa-0242ac110002-jpg-regular_image.jpeg" alt="Leeds Academy Logo"/>
-                                    <div class="c-org">Leeds institute</div>
+                                    <div class="c-logo-text">
+                                        <span class="c-logo-name">LEEDS</span>
+                                        <span class="c-logo-sub">Institute</span>
+                                    </div>
                                 </div>
 
                                 <!-- Gold ornament -->
