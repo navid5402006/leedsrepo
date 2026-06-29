@@ -160,30 +160,45 @@ class StudentController extends Controller
     /**
      * Display the specified student.
      */
-    public function show($id)
-    {
-        $student = Student::with(['enrollments.course', 'enrollments.payments', 'studentCard'])->findOrFail($id);
-        
-        // Get student statistics
-        $totalEnrollments = $student->enrollments->count();
-        $totalPaid = $student->enrollments->flatMap->payments->sum('amount');
-        $totalFee = $student->enrollments->sum('final_fee');
-        $remaining = $totalFee - $totalPaid;
-        
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'student' => $student,
-                'stats' => [
-                    'total_enrollments' => $totalEnrollments,
-                    'total_fee' => $totalFee,
-                    'total_paid' => $totalPaid,
-                    'remaining' => $remaining,
-                ]
-            ]
-        ]);
-    }
+  public function show($id)
+{
+    $student = Student::with([
+        'enrollments.course',
+        'enrollments.payments',
+        'enrollments.certificate',  // Load certificate through enrollment
+        'certificates',  // Load certificates directly (optional)
+        'studentCard'
+    ])->findOrFail($id);
+    
+    // Get student statistics
+    $totalEnrollments = $student->enrollments->count();
+    $totalPaid = $student->enrollments->flatMap->payments->sum('amount');
+    $totalFee = $student->enrollments->sum('final_fee');
+    $remaining = $totalFee - $totalPaid;
+    
+    // Get certificates from enrollments
+    $certificates = $student->enrollments
+        ->map(function($enrollment) {
+            return $enrollment->certificate;
+        })
+        ->filter()
+        ->values();
+    
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'student' => $student,
+            'stats' => [
+                'total_enrollments' => $totalEnrollments,
+                'total_fee' => $totalFee,
+                'total_paid' => $totalPaid,
+                'remaining' => $remaining,
+            ],
+            'certificates' => $certificates,
+        ]
+    ]);
 
+}
     /**
      * Show the form for editing the specified student.
      */

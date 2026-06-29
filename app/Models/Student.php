@@ -1,31 +1,33 @@
 <?php
+// app/Models/Student.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Student extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
-        'student_id',        // Add this
+        'student_id',
         'name',
         'father_name',
-        'phone',             // Changed from 'phone' to match your form
+        'phone',
         'email',
         'address',
-        'date_of_birth',     // Changed from 'dob' to match your form
+        'date_of_birth',
         'nationality',
         'qualification',
-        'status',            // Add this
-        'profile_image',     // Add this
+        'status',
+        'profile_image',
     ];
 
     protected $casts = [
-        'date_of_birth' => 'date',  // Changed from 'dob'
+        'date_of_birth' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -41,7 +43,21 @@ class Student extends Model
         return $this->hasOne(StudentCard::class);
     }
 
-    public function certificates()
+    // FIX: Add this relationship to get certificates through enrollments
+    public function certificates(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Certificate::class,
+            Enrollment::class,
+            'student_id',  // Foreign key on enrollments table
+            'enrollment_id', // Foreign key on certificates table
+            'id',           // Local key on students table
+            'id'            // Local key on enrollments table
+        );
+    }
+
+    // Alternative: Get certificates with course and enrollment data
+    public function certificatesWithDetails()
     {
         return $this->hasManyThrough(
             Certificate::class,
@@ -50,6 +66,6 @@ class Student extends Model
             'enrollment_id',
             'id',
             'id'
-        );
+        )->with(['enrollment.course']);
     }
 }

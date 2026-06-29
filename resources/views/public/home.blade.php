@@ -1354,11 +1354,11 @@
       @forelse($teachers as $teacher)
         <div class="teacher-card" data-aos="fade-up" data-aos-delay="{{ $loop->index * 80 }}">
           <div class="teacher-photo">
-            <img src="{{ $teacher->photo ? asset('storage/' . $teacher->photo) : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT32QJylyT86CDgyExxYZTUVpS_ZvNm8mo75YuNlw2_TQ&s=10' }}" alt="{{ $teacher->name }}" />
+            <img src="{{ $teacher->profile_image ? asset('storage/' . $teacher->profile_image) : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT32QJylyT86CDgyExxYZTUVpS_ZvNm8mo75YuNlw2_TQ&s=10' }}" alt="{{ $teacher->name }}" />
           </div>
           <div class="teacher-info">
             <div class="teacher-name">{{ $teacher->name }}</div>
-            <div class="teacher-subject">{{ $teacher->subject }}</div>
+            <div class="teacher-subject">{{ $teacher->specialization }}</div>
           </div>
         </div>
       @empty
@@ -1729,7 +1729,7 @@
 <!-- ═══════════════════════════════════════════════════
    NEWS - Upcoming Events (Static)
 ═══════════════════════════════════════════════════ -->
-<section id="news">
+<!-- <section id="news">
   <div class="container">
     <div class="text-center">
       <div class="section-tag"><i class="fas fa-calendar-alt"></i> What's Coming</div>
@@ -1776,7 +1776,7 @@
       </div>
     </div>
   </div>
-</section>
+</section> -->
 
 <!-- ═══════════════════════════════════════════════════
    CALL TO ACTION
@@ -1929,7 +1929,7 @@
 <!-- ═══════════════════════════════════════════════════
    FAQ (Static)
 ═══════════════════════════════════════════════════ -->
-<section id="faq" style="padding-top:0">
+<!-- <section id="faq" style="padding-top:0">
   <div class="container">
     <div class="text-center">
       <div class="section-tag"><i class="fas fa-question-circle"></i> FAQ</div>
@@ -1981,12 +1981,12 @@
       </div>
     </div>
   </div>
-</section>
+</section> -->
 
 <!-- ═══════════════════════════════════════════════════
    NEWSLETTER
 ═══════════════════════════════════════════════════ -->
-<section id="newsletter">
+<!-- <section id="newsletter">
   <div class="container">
     <div class="section-tag" style="background:rgba(11,60,109,.12);"><i class="fas fa-envelope"></i> Stay Updated</div>
     <h2>Subscribe to Our Newsletter</h2>
@@ -1996,7 +1996,7 @@
       <button type="submit"><i class="fas fa-paper-plane"></i> Subscribe</button>
     </form>
   </div>
-</section>
+</section> -->
 
 <!-- ═══════════════════════════════════════════════════
    FOOTER (Dynamic)
@@ -2046,12 +2046,9 @@
         <div class="footer-col">
           <h4>Programs</h4>
           <ul>
-            <li><a href="#courses"><i class="fas fa-chevron-right"></i> FSc Pre-Medical</a></li>
-            <li><a href="#courses"><i class="fas fa-chevron-right"></i> FSc Pre-Engineering</a></li>
-            <li><a href="#courses"><i class="fas fa-chevron-right"></i> ICS / I.Com</a></li>
-            <li><a href="#courses"><i class="fas fa-chevron-right"></i> Matric Science</a></li>
-            <li><a href="#courses"><i class="fas fa-chevron-right"></i> Computer Diploma</a></li>
-            <li><a href="#courses"><i class="fas fa-chevron-right"></i> Spoken English</a></li>
+            @foreach($courses as $course)
+              <li><a href="#courses"><i class="fas fa-chevron-right"></i> {{ $course->name }}</a></li>
+            @endforeach
           </ul>
         </div>
         <div class="footer-col">
