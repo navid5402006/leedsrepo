@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Contact Us – Leeds Institute</title>
-  <meta name="description" content="Get in touch with Leeds Institute. Contact us for admissions, courses, and any inquiries." />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Contact Us – {{ $settings['institute']['name'] ?? 'Leeds Institute' }}</title>
+  <meta name="description" content="Get in touch with {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. Contact us for admissions, courses, and any inquiries." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -82,6 +83,22 @@
     .btn-outline:hover { background: rgba(255,255,255,.1); border-color: var(--white); transform: translateY(-2px); }
     .btn-navy { background: var(--navy); color: var(--white); box-shadow: var(--shadow-sm); }
     .btn-navy:hover { background: var(--navy2); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .btn-wa {
+      background: #25D366; color: var(--white); border: none;
+      padding: 12px 28px; border-radius: 50px; font-weight: 700;
+      font-size: .9rem; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 8px; transition: var(--transition);
+      font-family: inherit;
+    }
+    .btn-wa:hover { background: #1da851; transform: translateY(-2px); }
+    .btn-call {
+      background: var(--navy); color: var(--white); border: none;
+      padding: 12px 28px; border-radius: 50px; font-weight: 700;
+      font-size: .9rem; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 8px; transition: var(--transition);
+      font-family: inherit;
+    }
+    .btn-call:hover { background: var(--navy2); transform: translateY(-2px); }
 
     /* ─── SECTION HEADERS ─── */
     .section-tag {
@@ -114,7 +131,7 @@
     section { padding: 90px 0; }
 
     /* ═══════════════════════════════════════════════════
-       HEADER (same as home)
+       HEADER (dynamic)
     ═══════════════════════════════════════════════════ */
     #header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
@@ -150,6 +167,7 @@
     nav { flex: 1; }
     .nav-list {
       display: flex; gap: 4px; align-items: center;
+      flex-wrap: wrap;
     }
     .nav-list a {
       padding: 8px 13px; border-radius: 8px;
@@ -159,8 +177,6 @@
     .nav-list a:hover, .nav-list a.active {
       background: rgba(255,255,255,.1); color: var(--white);
     }
-    .nav-actions { display: flex; gap: 10px; flex-shrink: 0; }
-    .nav-actions .btn { padding: 10px 20px; font-size: .83rem; }
 
     /* ─── HAMBURGER ─── */
     .hamburger {
@@ -338,6 +354,27 @@
       color: var(--navy);
       margin-bottom: 24px;
     }
+
+    /* Toast Messages */
+    .toast-message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+      font-weight: 500;
+    }
+    .toast-message.success {
+      background: #10B981;
+      color: #fff;
+      display: block;
+    }
+    .toast-message.error {
+      background: #EF4444;
+      color: #fff;
+      display: block;
+    }
+    .toast-message i { margin-right: 8px; }
+
     .form-group { margin-bottom: 16px; }
     .form-group label {
       display: block;
@@ -346,6 +383,7 @@
       color: var(--navy);
       margin-bottom: 4px;
     }
+    .form-group label .required { color: var(--red); }
     .form-group input,
     .form-group textarea,
     .form-group select {
@@ -396,8 +434,20 @@
     }
     .map-placeholder i { font-size: 3rem; margin-bottom: 10px; display: block; }
 
+    /* Extra Contact Options */
+    .contact-actions-wrap {
+      background: var(--gray-50);
+      padding: 40px 0;
+    }
+    .contact-actions-wrap .actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
     /* ═══════════════════════════════════════════════════
-       FOOTER (same as home)
+       FOOTER (dynamic)
     ═══════════════════════════════════════════════════ */
     #footer {
       background: var(--navy2);
@@ -498,14 +548,27 @@
     #back-top.show { opacity: 1; pointer-events: auto; }
     #back-top:hover { background: var(--yellow); color: var(--navy); transform: translateY(-3px); }
 
+    /* ─── Spinner ─── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     /* ═══════════════════════════════════════════════════
-       RESPONSIVE — MOBILE (same as home)
+       RESPONSIVE
     ═══════════════════════════════════════════════════ */
     @media (max-width: 768px) {
       section { padding: 40px 0; }
       .container { padding: 0 14px; overflow-x: hidden; }
 
-      /* Header */
       .nav-actions { display: none; }
       nav { display: none; }
       .hamburger { display: flex; margin-left: auto; }
@@ -515,12 +578,10 @@
       .logo-text strong { font-size: .72rem; }
       .logo-text span { font-size: .5rem; }
 
-      /* Contact Hero */
       .contact-page-hero { min-height: 30vh; padding-top: 60px; padding-bottom: 30px; }
       .contact-page-hero .hero-title { font-size: clamp(1.4rem, 5vw, 1.9rem); }
       .contact-page-hero p { font-size: .82rem; }
 
-      /* Contact Info Cards - 2 col on mobile */
       .contact-info-grid {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
@@ -540,7 +601,6 @@
       .contact-info-card h4 { font-size: .75rem; margin-bottom: 2px; }
       .contact-info-card p { font-size: .65rem; line-height: 1.3; }
 
-      /* Contact Form + Map - stacked */
       .contact-main-grid {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -562,7 +622,9 @@
       .map-wrap { min-height: 200px; height: 200px; }
       .map-wrap iframe { min-height: 200px; }
 
-      /* Footer */
+      .contact-actions-wrap .actions { flex-direction: column; align-items: center; }
+      .contact-actions-wrap .actions .btn { width: 100%; justify-content: center; }
+
       .footer-top { padding: 20px 0 12px; }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
       .footer-brand { grid-column: span 2; }
@@ -586,9 +648,8 @@
       }
       .footer-links { gap: 8px; justify-content: center; }
 
-      #back-top { width: 32px; height: 32px; font-size: .6rem; bottom: 12px; right: 12px; border-radius: 50%; }
+      #back-top { width: 32px; height: 32px; font-size: .6rem; bottom: 12px; right: 12px; }
 
-      /* Section headers mobile */
       .section-tag { font-size: .55rem; padding: 3px 10px; margin-bottom: 6px; border-radius: 30px; }
       .section-tag i { font-size: .5rem; }
       .section-title { font-size: clamp(1.1rem, 4vw, 1.4rem); }
@@ -615,54 +676,55 @@
 <div class="mobile-overlay" id="mobileOverlay"></div>
 
 <!-- ═══════════════════════════════════════════════════
-   MOBILE SIDEBAR NAV
+   MOBILE SIDEBAR NAV (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-header">
     <div class="mobile-nav-brand">
       <div class="logo-mark-sm">LI</div>
-      <span>Leeds Institute</span>
+      <span>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</span>
     </div>
     <button class="mobile-nav-close" id="navClose"><i class="fas fa-times"></i></button>
   </div>
-  <a href="index.html" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
-  <a href="about.html" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
-  <a href="courses.html" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
-  <a href="admissions.html" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
-  <a href="faq.html" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
-  <a href="teachers.html" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
-  <a href="gallery.html" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
-  <a href="contact.html" onclick="closeNav()" class="active"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('home') }}" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
+  <a href="{{ route('aboutus') }}" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
+  <a href="{{ route('courses') }}" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
+  <a href="{{ route('admissions') }}" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
+  <a href="{{ route('faq') }}" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
+  <a href="{{ route('teachers') }}" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
+  <a href="{{ route('gallery') }}" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
+  <a href="{{ route('contact') }}" onclick="closeNav()" class="active"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('crtverfictaion') }}" onclick="closeNav()"><i class="fas fa-certificate"></i> Verify Certificate</a>
+  <a href="{{ route('search_results') }}" onclick="closeNav()"><i class="fas fa-search"></i> Search</a>
+  <a href="{{ route('Terms_Privacy') }}" onclick="closeNav()"><i class="fas fa-shield-alt"></i> Privacy</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-   HEADER
+   HEADER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <header id="header">
   <div class="container">
     <div class="nav-inner">
-      <a href="index.html" class="logo">
+      <a href="{{ route('home') }}" class="logo">
         <div class="logo-mark">LI</div>
         <div class="logo-text">
-          <strong>Leeds Institute</strong>
-          <span>Quality Education Since 2005</span>
+          <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+          <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
         </div>
       </a>
       <nav>
         <ul class="nav-list">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="courses.html">Courses</a></li>
-          <li><a href="admissions.html">Admissions</a></li>
-          <li><a href="faq.html">FAQ</a></li>
-          <li><a href="teachers.html">Teachers</a></li>
-          <li><a href="gallery.html">Gallery</a></li>
-          <li><a href="contact.html" class="active">Contact</a></li>
+          <li><a href="{{ route('home') }}">Home</a></li>
+          <li><a href="{{ route('aboutus') }}">About</a></li>
+          <li><a href="{{ route('courses') }}">Courses</a></li>
+          <li><a href="{{ route('admissions') }}">Admissions</a></li>
+          <li><a href="{{ route('faq') }}">FAQ</a></li>
+          <li><a href="{{ route('teachers') }}">Teachers</a></li>
+          <li><a href="{{ route('gallery') }}">Gallery</a></li>
+          <li><a href="{{ route('contact') }}" class="active">Contact</a></li>
+          <li><a href="{{ route('crtverfictaion') }}">Verify</a></li>
         </ul>
       </nav>
-      <div class="nav-actions">
-        <!-- Apply Now & Login buttons removed -->
-      </div>
       <button class="hamburger" id="hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
@@ -686,7 +748,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   CONTACT INFO CARDS
+   CONTACT INFO CARDS (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <section style="padding: 0 0 40px 0;">
   <div class="container">
@@ -694,19 +756,19 @@
       <div class="contact-info-card" data-aos="fade-up" data-aos-delay="0">
         <div class="icon-wrap"><i class="fas fa-phone"></i></div>
         <h4>Phone Numbers</h4>
-        <p><a href="tel:+92XXX-XXXXXXX">+92-XXX-XXXXXXX</a></p>
-        <p><a href="tel:+92XXX-XXXXXXX">+92-XXX-XXXXXXX</a></p>
+        <p><a href="tel:{{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}">{{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}</a></p>
+        <p><a href="tel:{{ $settings['contact']['alternate_phone'] ?? '+92-XXX-XXXXXXX' }}">{{ $settings['contact']['alternate_phone'] ?? '+92-XXX-XXXXXXX' }}</a></p>
       </div>
       <div class="contact-info-card" data-aos="fade-up" data-aos-delay="60">
         <div class="icon-wrap"><i class="fas fa-envelope"></i></div>
         <h4>Email Address</h4>
-        <p><a href="mailto:info@leedsinstitute.edu.pk">info@leedsinstitute.edu.pk</a></p>
-        <p><a href="mailto:admissions@leedsinstitute.edu.pk">admissions@leedsinstitute.edu.pk</a></p>
+        <p><a href="mailto:{{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}">{{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}</a></p>
+        <p><a href="mailto:{{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}">admissions@leedsinstitute.edu.pk</a></p>
       </div>
       <div class="contact-info-card" data-aos="fade-up" data-aos-delay="120">
         <div class="icon-wrap"><i class="fas fa-map-marker-alt"></i></div>
         <h4>Office Address</h4>
-        <p>Leeds Institute, Main Road<br>City, Pakistan</p>
+        <p>{{ $settings['contact']['address'] ?? 'Leeds Institute, Main Road, City, Pakistan' }}</p>
       </div>
       <div class="contact-info-card" data-aos="fade-up" data-aos-delay="180">
         <div class="icon-wrap"><i class="fas fa-clock"></i></div>
@@ -719,7 +781,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   CONTACT FORM + MAP
+   CONTACT FORM + MAP (Dynamic with AJAX)
 ═══════════════════════════════════════════════════ -->
 <section id="contact" style="padding-top:0;">
   <div class="container">
@@ -727,40 +789,48 @@
       <!-- Form -->
       <div class="contact-form-wrap" data-aos="fade-right">
         <h3><i class="fas fa-paper-plane" style="color:var(--navy);margin-right:10px;"></i> Send Us a Message</h3>
-        <form onsubmit="return false;">
+        
+        <!-- Toast Messages -->
+        <div id="successMsg" class="toast-message success" style="display:none;">
+          <i class="fas fa-check-circle"></i> <span id="successText">Your enquiry has been submitted successfully!</span>
+        </div>
+        <div id="errorMsg" class="toast-message error" style="display:none;">
+          <i class="fas fa-exclamation-circle"></i> <span id="errorText">Something went wrong. Please try again.</span>
+        </div>
+
+        <form id="contactForm" onsubmit="submitEnquiry(event)">
+          @csrf
           <div class="form-row">
             <div class="form-group">
-              <label>Full Name</label>
-              <input type="text" placeholder="Your full name" />
+              <label>Full Name <span class="required">*</span></label>
+              <input type="text" id="full_name" name="full_name" placeholder="Your full name" required />
             </div>
             <div class="form-group">
-              <label>Phone Number</label>
-              <input type="tel" placeholder="+92-XXX-XXXXXXX" />
+              <label>Phone Number <span class="required">*</span></label>
+              <input type="tel" id="phone_number" name="phone_number" placeholder="+92-XXX-XXXXXXX" required />
             </div>
           </div>
           <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" placeholder="your@email.com" />
+            <label>Email Address <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required />
           </div>
           <div class="form-group">
             <label>Interested Course</label>
-            <select>
+            <select id="interested_course" name="interested_course">
               <option value="">Select a course...</option>
-              <option>FSc Pre-Medical</option>
-              <option>FSc Pre-Engineering</option>
-              <option>ICS / I.Com</option>
-              <option>Matric (Science)</option>
-              <option>Matric (Arts)</option>
-              <option>Computer Diploma</option>
-              <option>Spoken English</option>
+              @foreach($courses as $course)
+                <option value="{{ $course->name }}">{{ $course->name }}</option>
+              @endforeach
+              <option value="Other">Other</option>
             </select>
           </div>
           <div class="form-group">
             <label>Message</label>
-            <textarea placeholder="Write your question or message here..."></textarea>
+            <textarea id="message" name="message" placeholder="Write your question or message here..." rows="4"></textarea>
           </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:.95rem;padding:14px;">
-            <i class="fas fa-paper-plane"></i> Send Message
+          <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;justify-content:center;font-size:.95rem;padding:14px;">
+            <i class="fas fa-paper-plane"></i> <span id="btnText">Send Message</span>
+            <span class="spinner" id="btnSpinner" style="display:none;"></span>
           </button>
         </form>
       </div>
@@ -768,14 +838,18 @@
       <!-- Map -->
       <div data-aos="fade-left">
         <div class="map-wrap">
-          <div class="map-placeholder">
-            <i class="fas fa-map-marker-alt" style="color:var(--red)"></i>
-            <p style="font-size:1rem;font-weight:600;color:var(--gray-600)">Find Us Here</p>
-            <p style="font-size:.85rem;margin-top:6px;color:var(--gray-400);">Leeds Institute, Main Road, City</p>
-            <a href="#" class="btn btn-navy" style="margin-top:16px;font-size:.85rem;padding:10px 24px;">
-              <i class="fas fa-directions"></i> Get Directions
-            </a>
-          </div>
+          @if($settings['contact']['map_url'] ?? false)
+            <iframe src="{{ $settings['contact']['map_url'] }}" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          @else
+            <div class="map-placeholder">
+              <i class="fas fa-map-marker-alt" style="color:var(--red)"></i>
+              <p style="font-size:1rem;font-weight:600;color:var(--gray-600)">Find Us Here</p>
+              <p style="font-size:.85rem;margin-top:6px;color:var(--gray-400);">{{ $settings['contact']['address'] ?? 'Leeds Institute, Main Road, City' }}</p>
+              <a href="https://maps.google.com/?q={{ urlencode($settings['contact']['address'] ?? 'Leeds Institute, Main Road, City, Pakistan') }}" target="_blank" class="btn btn-navy" style="margin-top:16px;font-size:.85rem;padding:10px 24px;">
+                <i class="fas fa-directions"></i> Get Directions
+              </a>
+            </div>
+          @endif
         </div>
       </div>
     </div>
@@ -783,18 +857,18 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   EXTRA CONTACT OPTIONS
+   EXTRA CONTACT OPTIONS (Dynamic)
 ═══════════════════════════════════════════════════ -->
-<section style="padding:0 0 60px 0;background:var(--gray-50);">
+<section class="contact-actions-wrap">
   <div class="container">
-    <div class="contact-actions" style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;padding:24px 0;">
-      <button class="btn btn-wa" style="background:#25D366;color:var(--white);border:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);font-family:inherit;">
+    <div class="actions">
+      <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $settings['contact']['whatsapp'] ?? '923001234567') }}" target="_blank" class="btn btn-wa">
         <i class="fab fa-whatsapp"></i> WhatsApp Us
-      </button>
-      <button class="btn btn-call" style="background:var(--navy);color:var(--white);border:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);font-family:inherit;">
+      </a>
+      <a href="tel:{{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}" class="btn btn-call">
         <i class="fas fa-phone"></i> Call Now
-      </button>
-      <a href="mailto:info@leedsinstitute.edu.pk" class="btn btn-navy" style="background:var(--navy);color:var(--white);padding:12px 28px;border-radius:50px;font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:8px;">
+      </a>
+      <a href="mailto:{{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}" class="btn btn-navy">
         <i class="fas fa-envelope"></i> Email Us
       </a>
     </div>
@@ -802,66 +876,78 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   FOOTER
+   FOOTER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <footer id="footer">
   <div class="footer-top">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="{{ route('home') }}" class="logo">
             <div class="logo-mark">LI</div>
             <div class="logo-text">
-              <strong>Leeds Institute</strong>
-              <span>Quality Education Since 2005</span>
+              <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+              <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
             </div>
           </a>
-          <p>Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.</p>
+          <p>{{ $settings['about']['about_us'] ?? 'Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.' }}</p>
           <div class="footer-social">
-            <a href="#" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-btn" title="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-btn" title="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="social-btn" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            @if($settings['social']['facebook'] ?? false)
+              <a href="{{ $settings['social']['facebook'] }}" class="social-btn" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            @endif
+            @if($settings['social']['twitter'] ?? false)
+              <a href="{{ $settings['social']['twitter'] }}" class="social-btn" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+            @endif
+            @if($settings['social']['instagram'] ?? false)
+              <a href="{{ $settings['social']['instagram'] }}" class="social-btn" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            @endif
+            @if($settings['social']['youtube'] ?? false)
+              <a href="{{ $settings['social']['youtube'] }}" class="social-btn" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+            @endif
+            @if($settings['social']['linkedin'] ?? false)
+              <a href="{{ $settings['social']['linkedin'] }}" class="social-btn" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @endif
+            @if($settings['social']['tiktok'] ?? false)
+              <a href="{{ $settings['social']['tiktok'] }}" class="social-btn" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            @endif
           </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
-            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
-            <li><a href="teachers.html"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
-            <li><a href="gallery.html"><i class="fas fa-chevron-right"></i> Gallery</a></li>
-            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+            <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="{{ route('aboutus') }}"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="{{ route('teachers') }}"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
+            <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> Gallery</a></li>
+            <li><a href="{{ route('contact') }}"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Programs</h4>
           <ul>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Medical</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Engineering</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> ICS / I.Com</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Matric Science</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Computer Diploma</a></li>
+            @foreach($allCourses->take(5) as $course)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> {{ $course->name }}</a></li>
+            @endforeach
+            <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> View All Courses</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Admissions</h4>
           <ul>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Contact Info</h4>
           <ul class="footer-contact">
-            <li><i class="fas fa-map-marker-alt"></i> Main Road, City, Pakistan</li>
-            <li><i class="fas fa-phone"></i> +92-XXX-XXXXXXX</li>
-            <li><i class="fas fa-envelope"></i> info@leedsinstitute.edu.pk</li>
-            <li><i class="fab fa-whatsapp"></i> +92-XXX-XXXXXXX</li>
+            <li><i class="fas fa-map-marker-alt"></i> {{ $settings['contact']['address'] ?? 'Main Road, City, Pakistan' }}</li>
+            <li><i class="fas fa-phone"></i> {{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}</li>
+            <li><i class="fas fa-envelope"></i> {{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}</li>
+            <li><i class="fab fa-whatsapp"></i> {{ $settings['contact']['whatsapp'] ?? '+92-XXX-XXXXXXX' }}</li>
             <li><i class="fas fa-clock"></i> Mon–Sat: 8:00 AM – 5:00 PM</li>
           </ul>
         </div>
@@ -871,12 +957,12 @@
   <div class="container">
     <div class="footer-bottom">
       <div style="color:rgba(255,255,255,.45)">
-        &copy; 2025 Leeds Institute. All Rights Reserved.
+        &copy; {{ date('Y') }} {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. All Rights Reserved.
       </div>
       <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Sitemap</a>
+        <a href="{{ route('Terms_Privacy') }}">Privacy Policy</a>
+        <a href="{{ route('Terms_Privacy') }}">Terms & Conditions</a>
+        <a href="{{ route('crtverfictaion') }}">Verify Certificate</a>
       </div>
     </div>
   </div>
@@ -888,6 +974,7 @@
 <script>
   AOS.init({ duration: 700, once: true, offset: 60, easing: 'ease-out-cubic' });
 
+  // ─── Header Scroll ──────────────────────────────────────
   const header = document.getElementById('header');
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 50);
@@ -898,7 +985,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // ── Hamburger toggle ───────────────────────────────────
+  // ─── Hamburger toggle ───────────────────────────────────
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobileNav');
   const navClose = document.getElementById('navClose');
@@ -923,16 +1010,93 @@
     link.addEventListener('click', closeNav);
   });
 
-  // ── Active nav link ─────────────────────────────────
+  // ─── Active nav link ─────────────────────────────────
   const navLinks = document.querySelectorAll('.nav-list a');
   navLinks.forEach(link => {
     link.classList.remove('active');
-    if (link.getAttribute('href') === 'contact.html') {
+    if (link.getAttribute('href') === '{{ route("contact") }}') {
       link.classList.add('active');
     }
   });
 
-  // ── Smooth internal links ───────────────────────────
+  // ─── Contact Form Submission (AJAX) ────────────────────
+  function submitEnquiry(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    const successDiv = document.getElementById('successMsg');
+    const errorDiv = document.getElementById('errorMsg');
+    const successText = document.getElementById('successText');
+    const errorText = document.getElementById('errorText');
+
+    // Hide previous messages
+    successDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+
+    // Show loading state
+    btnText.textContent = 'Sending...';
+    btnSpinner.style.display = 'inline-block';
+    submitBtn.disabled = true;
+
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    fetch('{{ route("store.enquiry") }}', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'Accept': 'application/json',
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Reset button state
+      btnText.textContent = 'Send Message';
+      btnSpinner.style.display = 'none';
+      submitBtn.disabled = false;
+
+      if (data.success) {
+        successText.textContent = data.message;
+        successDiv.style.display = 'block';
+        form.reset();
+
+        // Auto-hide success after 5 seconds
+        setTimeout(() => {
+          successDiv.style.display = 'none';
+        }, 5000);
+
+        // Scroll to success message
+        successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        errorText.textContent = data.message || 'Something went wrong. Please try again.';
+        errorDiv.style.display = 'block';
+
+        setTimeout(() => {
+          errorDiv.style.display = 'none';
+        }, 5000);
+      }
+    })
+    .catch(error => {
+      btnText.textContent = 'Send Message';
+      btnSpinner.style.display = 'none';
+      submitBtn.disabled = false;
+
+      errorText.textContent = 'Network error. Please check your connection and try again.';
+      errorDiv.style.display = 'block';
+
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+
+      console.error('Error:', error);
+    });
+  }
+
+  // ─── Smooth internal links ───────────────────────────
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const id = a.getAttribute('href');

@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Certificate Verification – Leeds Institute</title>
-  <meta name="description" content="Verify your certificate from Leeds Institute. View student name, course, and issue date." />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Certificate Verification – {{ $settings['institute']['name'] ?? 'Leeds Institute' }}</title>
+  <meta name="description" content="Verify your certificate from {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. View student name, course, and issue date." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -114,7 +115,7 @@
     section { padding: 90px 0; }
 
     /* ═══════════════════════════════════════════════════
-       HEADER (same as home)
+       HEADER (Dynamic)
     ═══════════════════════════════════════════════════ */
     #header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
@@ -150,6 +151,7 @@
     nav { flex: 1; }
     .nav-list {
       display: flex; gap: 4px; align-items: center;
+      flex-wrap: wrap;
     }
     .nav-list a {
       padding: 8px 13px; border-radius: 8px;
@@ -159,8 +161,6 @@
     .nav-list a:hover, .nav-list a.active {
       background: rgba(255,255,255,.1); color: var(--white);
     }
-    .nav-actions { display: flex; gap: 10px; flex-shrink: 0; }
-    .nav-actions .btn { padding: 10px 20px; font-size: .83rem; }
 
     /* ─── HAMBURGER ─── */
     .hamburger {
@@ -377,39 +377,41 @@
       margin-right: 6px;
     }
 
-    /* ─── SOCIAL MEDIA ICONS IN FOOTER ─── */
-    .footer-social {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    /* Not Found */
+    .not-found-card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 60px 40px;
+      box-shadow: var(--shadow-lg);
+      margin-top: -30px;
+      position: relative;
+      z-index: 2;
+      border: 2px solid var(--red);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+      animation: slideUp .6s ease;
     }
-    .social-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .9rem;
-      transition: var(--transition);
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
+    .not-found-card .icon {
+      font-size: 4rem;
+      color: var(--red);
+      margin-bottom: 16px;
     }
-    .social-btn:hover {
-      background: var(--yellow);
+    .not-found-card h2 {
+      font-size: 1.5rem;
       color: var(--navy);
-      transform: translateY(-2px);
+      margin-bottom: 8px;
     }
-    .social-btn:active {
-      transform: scale(.95);
+    .not-found-card p {
+      color: var(--gray-600);
+      margin-bottom: 24px;
+    }
+    .not-found-card .btn {
+      margin: 0 auto;
     }
 
-    /* ═══════════════════════════════════════════════════
-       FOOTER (same as home)
-    ═══════════════════════════════════════════════════ */
+    /* ─── FOOTER (Dynamic) ─── */
     #footer {
       background: var(--navy2);
       color: rgba(255,255,255,.75);
@@ -510,13 +512,12 @@
     #back-top:hover { background: var(--yellow); color: var(--navy); transform: translateY(-3px); }
 
     /* ═══════════════════════════════════════════════════
-       RESPONSIVE — MOBILE
+       RESPONSIVE
     ═══════════════════════════════════════════════════ */
     @media (max-width: 768px) {
       section { padding: 40px 0; }
       .container { padding: 0 14px; overflow-x: hidden; }
 
-      /* Header */
       .nav-actions { display: none; }
       nav { display: none; }
       .hamburger { display: flex; margin-left: auto; }
@@ -526,12 +527,10 @@
       .logo-text strong { font-size: .72rem; }
       .logo-text span { font-size: .5rem; }
 
-      /* CRT Hero */
       .crt-page-hero { min-height: 30vh; padding-top: 60px; padding-bottom: 30px; }
       .crt-page-hero .hero-title { font-size: clamp(1.4rem, 5vw, 1.9rem); }
       .crt-page-hero p { font-size: .82rem; }
 
-      /* Certificate Card - mobile */
       .certificate-card {
         padding: 24px 18px;
         border-radius: 16px;
@@ -569,7 +568,17 @@
         font-size: .75rem;
       }
 
-      /* Footer */
+      .not-found-card {
+        padding: 40px 20px;
+        margin-top: -20px;
+      }
+      .not-found-card .icon {
+        font-size: 3rem;
+      }
+      .not-found-card h2 {
+        font-size: 1.2rem;
+      }
+
       .footer-top { padding: 20px 0 12px; }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
       .footer-brand { grid-column: span 2; }
@@ -593,7 +602,7 @@
       }
       .footer-links { gap: 8px; justify-content: center; }
 
-      #back-top { width: 32px; height: 32px; font-size: .6rem; bottom: 12px; right: 12px; border-radius: 50%; }
+      #back-top { width: 32px; height: 32px; font-size: .6rem; bottom: 12px; right: 12px; }
 
       .section-tag { font-size: .55rem; padding: 3px 10px; margin-bottom: 6px; border-radius: 30px; }
       .section-tag i { font-size: .5rem; }
@@ -616,58 +625,55 @@
 <div class="mobile-overlay" id="mobileOverlay"></div>
 
 <!-- ═══════════════════════════════════════════════════
-   MOBILE SIDEBAR NAV
+   MOBILE SIDEBAR NAV (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-header">
     <div class="mobile-nav-brand">
       <div class="logo-mark-sm">LI</div>
-      <span>Leeds Institute</span>
+      <span>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</span>
     </div>
     <button class="mobile-nav-close" id="navClose"><i class="fas fa-times"></i></button>
   </div>
-  <a href="index.html" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
-  <a href="about.html" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
-  <a href="courses.html" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
-  <a href="admissions.html" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
-  <a href="results.html" onclick="closeNav()"><i class="fas fa-graduation-cap"></i> Results</a>
-  <a href="crt-verify.html" onclick="closeNav()" class="active"><i class="fas fa-certificate"></i> CRT Verify</a>
-  <a href="faq.html" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
-  <a href="teachers.html" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
-  <a href="gallery.html" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
-  <a href="contact.html" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('home') }}" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
+  <a href="{{ route('aboutus') }}" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
+  <a href="{{ route('courses') }}" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
+  <a href="{{ route('admissions') }}" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
+  <a href="{{ route('faq') }}" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
+  <a href="{{ route('teachers') }}" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
+  <a href="{{ route('gallery') }}" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
+  <a href="{{ route('contact') }}" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('crtverfictaion') }}" onclick="closeNav()"><i class="fas fa-certificate"></i> Verify Certificate</a>
+  <a href="{{ route('search_results') }}" onclick="closeNav()"><i class="fas fa-search"></i> Search</a>
+  <a href="{{ route('Terms_Privacy') }}" onclick="closeNav()"><i class="fas fa-shield-alt"></i> Privacy</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-   HEADER
+   HEADER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <header id="header">
   <div class="container">
     <div class="nav-inner">
-      <a href="index.html" class="logo">
+      <a href="{{ route('home') }}" class="logo">
         <div class="logo-mark">LI</div>
         <div class="logo-text">
-          <strong>Leeds Institute</strong>
-          <span>Quality Education Since 2005</span>
+          <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+          <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
         </div>
       </a>
       <nav>
         <ul class="nav-list">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="courses.html">Courses</a></li>
-          <li><a href="admissions.html">Admissions</a></li>
-          <li><a href="results.html">Results</a></li>
-          <li><a href="crt-verify.html" class="active">CRT Verify</a></li>
-          <li><a href="faq.html">FAQ</a></li>
-          <li><a href="teachers.html">Teachers</a></li>
-          <li><a href="gallery.html">Gallery</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="{{ route('home') }}">Home</a></li>
+          <li><a href="{{ route('aboutus') }}">About</a></li>
+          <li><a href="{{ route('courses') }}">Courses</a></li>
+          <li><a href="{{ route('admissions') }}">Admissions</a></li>
+          <li><a href="{{ route('faq') }}">FAQ</a></li>
+          <li><a href="{{ route('teachers') }}">Teachers</a></li>
+          <li><a href="{{ route('gallery') }}">Gallery</a></li>
+          <li><a href="{{ route('contact') }}">Contact</a></li>
+          <li><a href="{{ route('crtverfictaion') }}" class="active">Verify</a></li>
         </ul>
       </nav>
-      <div class="nav-actions">
-        <!-- Apply Now & Login buttons removed -->
-      </div>
       <button class="hamburger" id="hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
@@ -685,114 +691,139 @@
         <i class="fas fa-certificate"></i> Certificate Verification
       </div>
       <h1 class="hero-title">CRT <span>Verification</span></h1>
-      <p>Verify your certificate details from Leeds Institute.</p>
+      <p>Verify your certificate details from {{ $settings['institute']['name'] ?? 'Leeds Institute' }}.</p>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   CERTIFICATE DETAILS
+   CERTIFICATE DETAILS (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <section style="padding-top:0;">
   <div class="container">
-    <div class="certificate-card" data-aos="fade-up">
-      <div class="cert-header">
-        <div class="cert-icon"><i class="fas fa-certificate"></i></div>
-        <h2>Certificate of Completion</h2>
-        <span class="cert-status"><i class="fas fa-check-circle"></i> Verified</span>
-      </div>
+    @if(isset($certificate) && $certificate)
+      <!-- Certificate Found -->
+      <div class="certificate-card" data-aos="fade-up">
+        <div class="cert-header">
+          <div class="cert-icon"><i class="fas fa-certificate"></i></div>
+          <h2>Certificate of Completion</h2>
+          <span class="cert-status"><i class="fas fa-check-circle"></i> Verified</span>
+        </div>
 
-      <div class="cert-body">
-        <div class="detail-item">
-          <div class="label"><i class="fas fa-user"></i> Student Name</div>
-          <div class="value" id="certName">Muhammad Ali</div>
+        <div class="cert-body">
+          <div class="detail-item">
+            <div class="label"><i class="fas fa-user"></i> Student Name</div>
+            <div class="value">{{ $certificate->student_name ?? $certificate->name ?? 'N/A' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="label"><i class="fas fa-graduation-cap"></i> Course / Program</div>
+            <div class="value">{{ $certificate->course->name ?? $certificate->course ?? 'N/A' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="label"><i class="fas fa-calendar-alt"></i> Issue Date</div>
+            <div class="value">{{ $certificate->issue_date ? \Carbon\Carbon::parse($certificate->issue_date)->format('F d, Y') : 'N/A' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="label"><i class="fas fa-hashtag"></i> Certificate Number</div>
+            <div class="value crt-number">{{ $certificate->certificate_no ?? $certificate->certificate_number ?? $certificate_number ?? 'N/A' }}</div>
+          </div>
         </div>
-        <div class="detail-item">
-          <div class="label"><i class="fas fa-graduation-cap"></i> Course / Program</div>
-          <div class="value" id="certCourse">FSc Pre-Medical</div>
-        </div>
-        <div class="detail-item">
-          <div class="label"><i class="fas fa-calendar-alt"></i> Issue Date</div>
-          <div class="value" id="certDate">January 15, 2025</div>
-        </div>
-        <div class="detail-item">
-          <div class="label"><i class="fas fa-hashtag"></i> Certificate Number</div>
-          <div class="value crt-number" id="certNumber">CRT-2024-001</div>
-        </div>
-      </div>
 
-      <div class="cert-footer">
-        <div class="verified-by">
-          <span class="institute-logo">LI</span>
-          <strong>Leeds Institute</strong> — Quality Education Since 2005
+        <div class="cert-footer">
+          <div class="verified-by">
+            <span class="institute-logo">LI</span>
+            <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong> — {{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}
+          </div>
         </div>
       </div>
-    </div>
+    @else
+      <!-- Certificate Not Found -->
+      <div class="not-found-card" data-aos="fade-up">
+        <div class="icon"><i class="fas fa-times-circle"></i></div>
+        <h2>Certificate Not Found</h2>
+        <p>We couldn't find a certificate with the number <strong>"{{ $certificate_number ?? 'N/A' }}"</strong>.</p>
+        <p style="font-size:.85rem;color:var(--gray-400);">Please check the CRT number and try again.</p>
+        <a href="{{ route('crtverfictaion') }}" class="btn btn-primary" style="margin-top:16px;">
+          <i class="fas fa-arrow-left"></i> Try Again
+        </a>
+      </div>
+    @endif
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   FOOTER
+   FOOTER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <footer id="footer">
   <div class="footer-top">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="{{ route('home') }}" class="logo">
             <div class="logo-mark">LI</div>
             <div class="logo-text">
-              <strong>Leeds Institute</strong>
-              <span>Quality Education Since 2005</span>
+              <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+              <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
             </div>
           </a>
-          <p>Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.</p>
+          <p>{{ $settings['about']['about_us'] ?? 'Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.' }}</p>
           <div class="footer-social">
-            <a href="#" class="social-btn" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-btn" title="Twitter" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="social-btn" title="Instagram" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-btn" title="YouTube" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="social-btn" title="WhatsApp" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-            <a href="#" class="social-btn" title="LinkedIn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @if($settings['social']['facebook'] ?? false)
+              <a href="{{ $settings['social']['facebook'] }}" class="social-btn" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            @endif
+            @if($settings['social']['twitter'] ?? false)
+              <a href="{{ $settings['social']['twitter'] }}" class="social-btn" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+            @endif
+            @if($settings['social']['instagram'] ?? false)
+              <a href="{{ $settings['social']['instagram'] }}" class="social-btn" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            @endif
+            @if($settings['social']['youtube'] ?? false)
+              <a href="{{ $settings['social']['youtube'] }}" class="social-btn" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+            @endif
+            @if($settings['social']['linkedin'] ?? false)
+              <a href="{{ $settings['social']['linkedin'] }}" class="social-btn" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @endif
+            @if($settings['social']['tiktok'] ?? false)
+              <a href="{{ $settings['social']['tiktok'] }}" class="social-btn" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            @endif
           </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
-            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
-            <li><a href="teachers.html"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
-            <li><a href="gallery.html"><i class="fas fa-chevron-right"></i> Gallery</a></li>
-            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+            <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="{{ route('aboutus') }}"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="{{ route('teachers') }}"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
+            <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> Gallery</a></li>
+            <li><a href="{{ route('contact') }}"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Programs</h4>
           <ul>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Medical</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Engineering</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> ICS / I.Com</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Matric Science</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Computer Diploma</a></li>
+            @foreach($allCourses->take(5) as $course)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> {{ $course->name }}</a></li>
+            @endforeach
+            <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> View All Courses</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Admissions</h4>
           <ul>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Contact Info</h4>
           <ul class="footer-contact">
-            <li><i class="fas fa-map-marker-alt"></i> Main Road, City, Pakistan</li>
-            <li><i class="fas fa-phone"></i> +92-XXX-XXXXXXX</li>
-            <li><i class="fas fa-envelope"></i> info@leedsinstitute.edu.pk</li>
-            <li><i class="fab fa-whatsapp"></i> +92-XXX-XXXXXXX</li>
+            <li><i class="fas fa-map-marker-alt"></i> {{ $settings['contact']['address'] ?? 'Main Road, City, Pakistan' }}</li>
+            <li><i class="fas fa-phone"></i> {{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}</li>
+            <li><i class="fas fa-envelope"></i> {{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}</li>
+            <li><i class="fab fa-whatsapp"></i> {{ $settings['contact']['whatsapp'] ?? '+92-XXX-XXXXXXX' }}</li>
             <li><i class="fas fa-clock"></i> Mon–Sat: 8:00 AM – 5:00 PM</li>
           </ul>
         </div>
@@ -802,12 +833,12 @@
   <div class="container">
     <div class="footer-bottom">
       <div style="color:rgba(255,255,255,.45)">
-        &copy; 2025 Leeds Institute. All Rights Reserved.
+        &copy; {{ date('Y') }} {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. All Rights Reserved.
       </div>
       <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Sitemap</a>
+        <a href="{{ route('Terms_Privacy') }}">Privacy Policy</a>
+        <a href="{{ route('Terms_Privacy') }}">Terms & Conditions</a>
+        <a href="{{ route('crtverfictaion') }}">Verify Certificate</a>
       </div>
     </div>
   </div>
@@ -819,6 +850,7 @@
 <script>
   AOS.init({ duration: 700, once: true, offset: 60, easing: 'ease-out-cubic' });
 
+  // ─── Header Scroll ──────────────────────────────────────
   const header = document.getElementById('header');
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 50);
@@ -829,7 +861,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // ── Hamburger toggle ───────────────────────────────────
+  // ─── Hamburger toggle ───────────────────────────────────
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobileNav');
   const navClose = document.getElementById('navClose');
@@ -854,11 +886,11 @@
     link.addEventListener('click', closeNav);
   });
 
-  // ── Active nav link ─────────────────────────────────
+  // ─── Active nav link ─────────────────────────────────
   const navLinks = document.querySelectorAll('.nav-list a');
   navLinks.forEach(link => {
     link.classList.remove('active');
-    if (link.getAttribute('href') === 'crt-verify.html') {
+    if (link.getAttribute('href') === '{{ route("crtverfictaion") }}') {
       link.classList.add('active');
     }
   });

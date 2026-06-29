@@ -11,6 +11,8 @@ use App\Models\Enrollment;
 use App\Models\Certificate;
 use App\Models\Gallery;
 use App\Models\Enquiry;
+use App\Models\TalentTestAttempt;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -117,27 +119,150 @@ class PublicSideController extends Controller
         return view('public.contact', compact('settings', 'courses', 'allCourses'));
     }
 
-    public function crtverfictaion()
+       public function crtverfictaion()
     {
         $settings = Setting::getAllSettings();
         $allCourses = Course::where('status', true)->get();
         return view('public.crtverfictaion', compact('settings', 'allCourses'));
     }
 
-    public function certifcate_number_verfy($certificate_number)
+            public function certificateVerify($certificate_number)
     {
         $settings = Setting::getAllSettings();
-        $certificate = Certificate::where('certificate_number', $certificate_number)->first();
+        
+        // Load certificate with course relationship
+        $certificate = Certificate::with('course', 'student')
+            ->where('certificate_no', $certificate_number)
+            ->orWhere('certificate_no', $certificate_number)
+            ->orWhere('certificate_no', $certificate_number)
+            ->first();
+            
         $allCourses = Course::where('status', true)->get();
-        return view('public.certificate_verify', compact('settings', 'certificate', 'allCourses'));
+        
+        return view('public.certificate_verify', compact('settings', 'certificate', 'allCourses', 'certificate_number'));
+    }
+
+
+    // Keep the old method for backward compatibility if needed
+    public function certifcate_number_verfy($certificate_number)
+    {
+        return $this->certificateVerify($certificate_number);
+    }
+
+
+       public function results()
+    {
+        $settings = Setting::getAllSettings();
+        $allCourses = Course::where('status', true)->get();
+        
+        return view('public.results', compact('settings', 'allCourses'));
+    }
+
+    /**
+     * AJAX method for searching results
+     */
+    public function searchResultsAjax(Request $request)
+    {
+        try {
+            $rollNo = $request->get('roll_no');
+            $name = $request->get('name');
+            $fatherName = $request->get('father_name');
+            
+            $query = TalentTestAttempt::with('candidate')
+                ->whereHas('candidate', function($q) use ($name, $fatherName) {
+                    if ($name) {
+                        $q->where('candidate_name', 'LIKE', "%{$name}%");
+                    }
+                    if ($fatherName) {
+                        $q->where('father_name', 'LIKE', "%{$fatherName}%");
+                    }
+                });
+            
+            if ($rollNo) {
+                $query->where('roll_number', 'LIKE', "%{$rollNo}%");
+            }
+            
+            $results = $query->orderBy('created_at', 'desc')->get();
+            
+            if ($results->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No results found. Please check your search criteria.'
+                ]);
+            }
+            
+            // Format results for display
+            $formattedResults = [];
+            foreach ($results as $result) {
+                $formattedResults[] = [
+                    'name' => $result->candidate->candidate_name ?? 'N/A',
+                    'father' => $result->candidate->father_name ?? 'N/A',
+                    'roll_no' => $result->roll_number ?? 'N/A',
+                    'class' => $result->candidate->course ?? 'Talent Test',
+                    'marks' => $result->obtained_marks ?? 0,
+                    'total_marks' => 100,
+                    'percentage' => $result->percentage ?? 0,
+                    'status' => $result->status ?? 'pending',
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $formattedResults
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Results search error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error searching results: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function search_results(Request $request)
     {
         $settings = Setting::getAllSettings();
-        $query = $request->get('q');
         $allCourses = Course::where('status', true)->get();
-        return view('public.search_results', compact('settings', 'query', 'allCourses'));
+        
+        $query = $request->get('q');
+        $rollNo = $request->get('roll_no');
+        $name = $request->get('name');
+        $fatherName = $request->get('father_name');
+        
+        $results = null;
+        $message = null;
+        
+        // If there's a search query
+        if ($query || $rollNo || $name || $fatherName) {
+            // Search in TalentTestAttempts
+            $attemptsQuery = TalentTestAttempt::with('candidate')
+                ->whereHas('candidate', function($q) use ($query, $name, $fatherName) {
+                    if ($query) {
+                        $q->where('candidate_name', 'LIKE', "%{$query}%")
+                          ->orWhere('father_name', 'LIKE', "%{$query}%")
+                          ->orWhere('contact_number', 'LIKE', "%{$query}%");
+                    }
+                    if ($name) {
+                        $q->where('candidate_name', 'LIKE', "%{$name}%");
+                    }
+                    if ($fatherName) {
+                        $q->where('father_name', 'LIKE', "%{$fatherName}%");
+                    }
+                });
+            
+            if ($rollNo) {
+                $attemptsQuery->where('roll_number', 'LIKE', "%{$rollNo}%");
+            }
+            
+            $results = $attemptsQuery->orderBy('created_at', 'desc')->get();
+            
+            if ($results->isEmpty()) {
+                $message = 'No results found. Please check your search criteria.';
+            }
+        }
+        
+        return view('public.search_results', compact('settings', 'allCourses', 'results', 'query', 'rollNo', 'name', 'fatherName', 'message'));
     }
 
     public function Terms_Privacy()

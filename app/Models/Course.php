@@ -30,4 +30,17 @@ class Course extends Model
     {
         return $this->hasMany(Enrollment::class);
     }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
+    }
+
+    public function getCourseNameAttribute()
+    {
+        if ($this->course) {
+            return $this->course->name;
+        }
+        return $this->course_name ?? 'N/A';
+    }
 }

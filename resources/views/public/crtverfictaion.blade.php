@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Results – Leeds Institute</title>
-  <meta name="description" content="Check your exam results at Leeds Institute. Search by roll number, name, or father's name." />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>CRT Verification – {{ $settings['institute']['name'] ?? 'Leeds Institute' }}</title>
+  <meta name="description" content="Enter your CRT number to verify your certificate at {{ $settings['institute']['name'] ?? 'Leeds Institute' }}." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
 
   <style>
-    /* ─── ROOT TOKENS (same as home) ─── */
+    /* ─── ROOT TOKENS ─── */
     :root {
       --navy: #0B3C6D;
       --navy2: #07284a;
@@ -114,7 +115,7 @@
     section { padding: 90px 0; }
 
     /* ═══════════════════════════════════════════════════
-       HEADER (same as home)
+       HEADER (Dynamic)
     ═══════════════════════════════════════════════════ */
     #header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
@@ -150,6 +151,7 @@
     nav { flex: 1; }
     .nav-list {
       display: flex; gap: 4px; align-items: center;
+      flex-wrap: wrap;
     }
     .nav-list a {
       padding: 8px 13px; border-radius: 8px;
@@ -159,8 +161,6 @@
     .nav-list a:hover, .nav-list a.active {
       background: rgba(255,255,255,.1); color: var(--white);
     }
-    .nav-actions { display: flex; gap: 10px; flex-shrink: 0; }
-    .nav-actions .btn { padding: 10px 20px; font-size: .83rem; }
 
     /* ─── HAMBURGER ─── */
     .hamburger {
@@ -229,9 +229,9 @@
     .mobile-nav a i { width: 24px; color: var(--yellow); margin-right: 10px; }
 
     /* ═══════════════════════════════════════════════════
-       RESULTS PAGE SPECIFIC STYLES
+       CRT VERIFICATION PAGE SPECIFIC STYLES
     ═══════════════════════════════════════════════════ */
-    .results-page-hero {
+    .crt-page-hero {
       min-height: 40vh;
       background: linear-gradient(135deg, #071e36 0%, #0B3C6D 45%, #1565a0 100%);
       display: flex;
@@ -240,228 +240,135 @@
       position: relative;
       overflow: hidden;
     }
-    .results-page-hero::before {
+    .crt-page-hero::before {
       content: ''; position: absolute; inset: 0;
       background-image:
         radial-gradient(circle at 20% 80%, rgba(255,193,7,.08) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(229,57,53,.06) 0%, transparent 50%);
       pointer-events: none;
     }
-    .results-page-hero .hero-title {
+    .crt-page-hero .hero-title {
       font-family: 'Playfair Display', serif;
       font-size: clamp(2rem, 5vw, 3.2rem);
       font-weight: 800; color: var(--white);
       line-height: 1.15;
     }
-    .results-page-hero .hero-title span { color: var(--yellow); }
-    .results-page-hero p {
+    .crt-page-hero .hero-title span { color: var(--yellow); }
+    .crt-page-hero p {
       color: rgba(255,255,255,.78);
       font-size: 1.05rem;
       max-width: 560px;
       margin-top: 12px;
     }
 
-    /* Search Form */
-    .search-card {
+    /* CRT Form Card */
+    .crt-card {
       background: var(--white);
       border-radius: var(--radius-xl);
-      padding: 40px 48px;
+      padding: 48px 56px;
       box-shadow: var(--shadow);
       margin-top: -30px;
       position: relative;
       z-index: 2;
       border: 1px solid var(--gray-200);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .search-form {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
+    .crt-card .icon-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(11,60,109,.08);
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      margin: 0 auto 20px;
+      transition: var(--transition);
+    }
+    .crt-card:hover .icon-wrap {
+      background: var(--navy);
+      color: var(--yellow);
+    }
+    .crt-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .crt-card p {
+      text-align: center;
+      color: var(--gray-600);
+      font-size: .9rem;
+      margin-bottom: 28px;
+    }
+    .crt-form {
+      display: flex;
+      flex-direction: column;
       gap: 16px;
-      align-items: end;
     }
-    .form-group {
+    .crt-form .form-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    .form-group label {
+    .crt-form .form-group label {
       font-size: .85rem;
       font-weight: 600;
       color: var(--navy);
     }
-    .form-group input {
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1.5px solid var(--gray-200);
+    .crt-form .form-group input {
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 2px solid var(--gray-200);
       font-family: inherit;
-      font-size: .9rem;
+      font-size: 1rem;
       color: var(--gray-800);
       background: var(--white);
       transition: var(--transition);
       outline: none;
       width: 100%;
+      text-align: center;
+      letter-spacing: 2px;
+      font-weight: 600;
+      text-transform: uppercase;
     }
-    .form-group input:focus {
+    .crt-form .form-group input:focus {
       border-color: var(--navy);
-      box-shadow: 0 0 0 3px rgba(11,60,109,.1);
+      box-shadow: 0 0 0 4px rgba(11,60,109,.1);
     }
-    .form-group input::placeholder {
+    .crt-form .form-group input::placeholder {
       color: var(--gray-400);
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
     }
-    .search-btn {
-      padding: 12px 32px;
-      min-height: 48px;
-      white-space: nowrap;
-    }
-
-    /* Result Card */
-    .result-card {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 32px 36px;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--gray-200);
-      margin-top: 32px;
-      display: none;
-      animation: slideUp .5s ease;
-    }
-    .result-card.show {
-      display: block;
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 16px;
-      border-bottom: 2px solid var(--yellow);
-    }
-    .result-header .student-name {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--navy);
-    }
-    .result-header .roll-number {
-      font-size: .95rem;
-      color: var(--gray-600);
-      background: var(--gray-100);
-      padding: 4px 16px;
-      border-radius: 50px;
-    }
-    .result-body {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      padding-top: 20px;
-    }
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--gray-100);
-    }
-    .result-item .subject {
-      font-weight: 500;
-      color: var(--gray-600);
-    }
-    .result-item .marks {
-      font-weight: 700;
-      color: var(--navy);
-    }
-    .result-item .marks.pass { color: #22c55e; }
-    .result-item .marks.fail { color: var(--red); }
-    .result-summary {
-      grid-column: span 2;
-      display: flex;
-      justify-content: space-between;
-      padding: 16px 0 0;
-      border-top: 2px solid var(--yellow);
+    .crt-form .verify-btn {
+      padding: 14px;
+      font-size: 1rem;
       margin-top: 8px;
     }
-    .result-summary .total {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--navy);
-    }
-    .result-summary .percentage {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--yellow2);
-    }
-    .result-summary .status {
-      font-size: 1rem;
-      font-weight: 700;
-      padding: 4px 20px;
-      border-radius: 50px;
-    }
-    .result-summary .status.pass {
-      background: rgba(34,197,94,.15);
-      color: #22c55e;
-    }
-    .result-summary .status.fail {
-      background: rgba(229,57,53,.15);
-      color: var(--red);
-    }
 
-    /* No Result */
-    .no-result {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--gray-400);
-      display: none;
-    }
-    .no-result.show {
-      display: block;
-      animation: slideUp .5s ease;
-    }
-    .no-result i {
-      font-size: 3rem;
-      color: var(--gray-300);
+    /* Toast Message */
+    .toast-message {
+      padding: 12px 16px;
+      border-radius: 8px;
       margin-bottom: 16px;
+      display: none;
+      font-weight: 500;
+      text-align: center;
     }
-    .no-result h3 {
-      font-size: 1.2rem;
-      color: var(--gray-600);
+    .toast-message.error {
+      background: #EF4444;
+      color: #fff;
+      display: block;
     }
-    .no-result p {
-      color: var(--gray-400);
-    }
+    .toast-message.error i { margin-right: 8px; }
 
-    /* ─── SOCIAL MEDIA ICONS IN FOOTER ─── */
-    .footer-social {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .social-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .9rem;
-      transition: var(--transition);
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-    }
-    .social-btn:hover {
-      background: var(--yellow);
-      color: var(--navy);
-      transform: translateY(-2px);
-    }
-    .social-btn:active {
-      transform: scale(.95);
-    }
-
-    /* ═══════════════════════════════════════════════════
-       FOOTER (same as home)
-    ═══════════════════════════════════════════════════ */
+    /* ─── FOOTER (Dynamic) ─── */
     #footer {
       background: var(--navy2);
       color: rgba(255,255,255,.75);
@@ -561,14 +468,25 @@
     #back-top.show { opacity: 1; pointer-events: auto; }
     #back-top:hover { background: var(--yellow); color: var(--navy); transform: translateY(-3px); }
 
-    /* ═══════════════════════════════════════════════════
-       RESPONSIVE — MOBILE (same as home)
-    ═══════════════════════════════════════════════════ */
+    /* ─── SPINNER ─── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ─── RESPONSIVE ─── */
     @media (max-width: 768px) {
       section { padding: 40px 0; }
       .container { padding: 0 14px; overflow-x: hidden; }
 
-      /* Header */
       .nav-actions { display: none; }
       nav { display: none; }
       .hamburger { display: flex; margin-left: auto; }
@@ -578,79 +496,31 @@
       .logo-text strong { font-size: .72rem; }
       .logo-text span { font-size: .5rem; }
 
-      /* Results Hero */
-      .results-page-hero { min-height: 30vh; padding-top: 60px; padding-bottom: 30px; }
-      .results-page-hero .hero-title { font-size: clamp(1.4rem, 5vw, 1.9rem); }
-      .results-page-hero p { font-size: .82rem; }
+      .crt-page-hero { min-height: 30vh; padding-top: 60px; padding-bottom: 30px; }
+      .crt-page-hero .hero-title { font-size: clamp(1.4rem, 5vw, 1.9rem); }
+      .crt-page-hero p { font-size: .82rem; }
 
-      /* Search Form - stacked on mobile */
-      .search-card {
-        padding: 24px 20px;
+      .crt-card {
+        padding: 28px 20px;
         border-radius: 16px;
         margin-top: -20px;
       }
-      .search-form {
-        grid-template-columns: 1fr;
-        gap: 12px;
+      .crt-card .icon-wrap {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+        margin-bottom: 14px;
       }
-      .form-group label {
-        font-size: .78rem;
-      }
-      .form-group input {
-        padding: 10px 14px;
-        font-size: .82rem;
-      }
-      .search-btn {
-        width: 100%;
-        padding: 12px;
-      }
-
-      /* Result Card - mobile */
-      .result-card {
-        padding: 20px 16px;
-        border-radius: 12px;
-      }
-      .result-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        padding-bottom: 12px;
-      }
-      .result-header .student-name {
-        font-size: 1.1rem;
-      }
-      .result-header .roll-number {
-        font-size: .8rem;
-      }
-      .result-body {
-        grid-template-columns: 1fr;
-        gap: 0;
-        padding-top: 12px;
-      }
-      .result-item {
-        padding: 8px 0;
-        font-size: .85rem;
-      }
-      .result-summary {
-        grid-column: span 1;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding-top: 12px;
-        margin-top: 4px;
-      }
-      .result-summary .total,
-      .result-summary .percentage {
+      .crt-card h3 { font-size: 1rem; }
+      .crt-card p { font-size: .8rem; margin-bottom: 20px; }
+      .crt-form .form-group label { font-size: .78rem; }
+      .crt-form .form-group input {
+        padding: 12px 14px;
         font-size: .9rem;
+        border-radius: 10px;
       }
-      .result-summary .status {
-        font-size: .85rem;
-        padding: 2px 16px;
-      }
+      .crt-form .verify-btn { padding: 12px; font-size: .9rem; }
 
-      .no-result i { font-size: 2.4rem; }
-      .no-result h3 { font-size: 1rem; }
-
-      /* Footer */
       .footer-top { padding: 20px 0 12px; }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
       .footer-brand { grid-column: span 2; }
@@ -674,9 +544,8 @@
       }
       .footer-links { gap: 8px; justify-content: center; }
 
-      #back-top { width: 32px; height: 32px; font-size: .6rem; bottom: 12px; right: 12px; border-radius: 50%; }
+      #back-top { width: 32px; height: 32px; font-size: .6rem; bottom: 12px; right: 12px; }
 
-      /* Section headers mobile */
       .section-tag { font-size: .55rem; padding: 3px 10px; margin-bottom: 6px; border-radius: 30px; }
       .section-tag i { font-size: .5rem; }
       .section-title { font-size: clamp(1.1rem, 4vw, 1.4rem); }
@@ -698,56 +567,55 @@
 <div class="mobile-overlay" id="mobileOverlay"></div>
 
 <!-- ═══════════════════════════════════════════════════
-   MOBILE SIDEBAR NAV
+   MOBILE SIDEBAR NAV (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-header">
     <div class="mobile-nav-brand">
       <div class="logo-mark-sm">LI</div>
-      <span>Leeds Institute</span>
+      <span>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</span>
     </div>
     <button class="mobile-nav-close" id="navClose"><i class="fas fa-times"></i></button>
   </div>
-  <a href="index.html" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
-  <a href="about.html" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
-  <a href="courses.html" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
-  <a href="admissions.html" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
-  <a href="results.html" onclick="closeNav()" class="active"><i class="fas fa-graduation-cap"></i> Results</a>
-  <a href="faq.html" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
-  <a href="teachers.html" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
-  <a href="gallery.html" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
-  <a href="contact.html" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('home') }}" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
+  <a href="{{ route('aboutus') }}" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
+  <a href="{{ route('courses') }}" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
+  <a href="{{ route('admissions') }}" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
+  <a href="{{ route('faq') }}" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
+  <a href="{{ route('teachers') }}" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
+  <a href="{{ route('gallery') }}" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
+  <a href="{{ route('contact') }}" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('crtverfictaion') }}" onclick="closeNav()" class="active"><i class="fas fa-certificate"></i> Verify Certificate</a>
+  <a href="{{ route('search_results') }}" onclick="closeNav()"><i class="fas fa-search"></i> Search</a>
+  <a href="{{ route('Terms_Privacy') }}" onclick="closeNav()"><i class="fas fa-shield-alt"></i> Privacy</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-   HEADER
+   HEADER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <header id="header">
   <div class="container">
     <div class="nav-inner">
-      <a href="index.html" class="logo">
+      <a href="{{ route('home') }}" class="logo">
         <div class="logo-mark">LI</div>
         <div class="logo-text">
-          <strong>Leeds Institute</strong>
-          <span>Quality Education Since 2005</span>
+          <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+          <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
         </div>
       </a>
       <nav>
         <ul class="nav-list">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="courses.html">Courses</a></li>
-          <li><a href="admissions.html">Admissions</a></li>
-          <li><a href="results.html" class="active">Results</a></li>
-          <li><a href="faq.html">FAQ</a></li>
-          <li><a href="teachers.html">Teachers</a></li>
-          <li><a href="gallery.html">Gallery</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="{{ route('home') }}">Home</a></li>
+          <li><a href="{{ route('aboutus') }}">About</a></li>
+          <li><a href="{{ route('courses') }}">Courses</a></li>
+          <li><a href="{{ route('admissions') }}">Admissions</a></li>
+          <li><a href="{{ route('faq') }}">FAQ</a></li>
+          <li><a href="{{ route('teachers') }}">Teachers</a></li>
+          <li><a href="{{ route('gallery') }}">Gallery</a></li>
+          <li><a href="{{ route('contact') }}">Contact</a></li>
+          <li><a href="{{ route('crtverfictaion') }}" class="active">Verify</a></li>
         </ul>
       </nav>
-      <div class="nav-actions">
-        <!-- Apply Now & Login buttons removed -->
-      </div>
       <button class="hamburger" id="hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
@@ -756,138 +624,136 @@
 </header>
 
 <!-- ═══════════════════════════════════════════════════
-   RESULTS PAGE HERO
+   CRT VERIFICATION PAGE HERO
 ═══════════════════════════════════════════════════ -->
-<section class="results-page-hero">
+<section class="crt-page-hero">
   <div class="container">
     <div class="hero-content" data-aos="fade-up">
       <div class="section-tag" style="background:rgba(255,193,7,.15);color:var(--yellow);border:1px solid rgba(255,193,7,.2);">
-        <i class="fas fa-graduation-cap"></i> Results
+        <i class="fas fa-certificate"></i> Certificate Verification
       </div>
-      <h1 class="hero-title">Check Your <span>Results</span></h1>
-      <p>Search your exam results by entering your Roll Number, Name, or Father's Name below.</p>
+      <h1 class="hero-title">CRT <span>Verification</span></h1>
+      <p>Enter your CRT number below to verify your certificate from {{ $settings['institute']['name'] ?? 'Leeds Institute' }}.</p>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   SEARCH FORM
+   CRT VERIFICATION FORM
 ═══════════════════════════════════════════════════ -->
 <section style="padding-top:0;">
   <div class="container">
-    <div class="search-card" data-aos="fade-up">
-      <form class="search-form" id="searchForm" onsubmit="return searchResult(event)">
+    <div class="crt-card" data-aos="fade-up">
+      <div class="icon-wrap">
+        <i class="fas fa-certificate"></i>
+      </div>
+      <h3>Enter CRT Number</h3>
+      <p>Please enter your unique CRT number to verify your certificate.</p>
+      
+      <!-- Toast Error Message -->
+      <div id="errorMsg" class="toast-message error" style="display:none;">
+        <i class="fas fa-exclamation-circle"></i> <span id="errorText">Please enter a valid CRT number.</span>
+      </div>
+      
+      <form class="crt-form" id="crtForm" onsubmit="verifyCRT(event)">
+        @csrf
         <div class="form-group">
-          <label><i class="fas fa-hashtag" style="color:var(--navy);margin-right:6px;"></i> Roll Number</label>
-          <input type="text" id="rollNo" placeholder="e.g. 2024-001" />
+          <label><i class="fas fa-hashtag" style="color:var(--navy);margin-right:6px;"></i> CRT Number</label>
+          <input 
+            type="text" 
+            id="crtNumber" 
+            name="certificate_number"
+            placeholder="e.g. CRT-2024-001" 
+            required
+            autofocus
+          />
         </div>
-        <div class="form-group">
-          <label><i class="fas fa-user" style="color:var(--navy);margin-right:6px;"></i> Name</label>
-          <input type="text" id="studentName" placeholder="Enter your name" />
-        </div>
-        <div class="form-group">
-          <label><i class="fas fa-user-friends" style="color:var(--navy);margin-right:6px;"></i> Father's Name</label>
-          <input type="text" id="fatherName" placeholder="Enter father's name" />
-        </div>
-        <button type="submit" class="btn btn-primary search-btn">
-          <i class="fas fa-search"></i> Search Results
+        <button type="submit" class="btn btn-primary verify-btn" id="verifyBtn">
+          <i class="fas fa-shield-alt"></i> <span id="btnText">Verify CRT</span>
+          <span class="spinner" id="btnSpinner" style="display:none;"></span>
         </button>
       </form>
-    </div>
-
-    <!-- Result Display -->
-    <div id="resultContainer">
-      <!-- Result Card (hidden by default) -->
-      <div class="result-card" id="resultCard">
-        <div class="result-header">
-          <div>
-            <div class="student-name" id="displayName">Muhammad Ali</div>
-            <div style="font-size:.85rem;color:var(--gray-400);margin-top:2px;" id="displayFather">S/o: Ahmad Khan</div>
-          </div>
-          <div class="roll-number" id="displayRoll">Roll: 2024-001</div>
-        </div>
-        <div class="result-body" id="resultBody">
-          <!-- Subjects will be injected here -->
-          <div class="result-summary" id="resultSummary">
-            <span class="total" id="displayTotal">Total: 450 / 550</span>
-            <span class="percentage" id="displayPercentage">Percentage: 81.8%</span>
-            <span class="status pass" id="displayStatus">✓ PASS</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- No Result -->
-      <div class="no-result" id="noResult">
-        <i class="fas fa-search"></i>
-        <h3>No Results Found</h3>
-        <p>Please check your search criteria and try again.</p>
-      </div>
+      
+      <p style="text-align:center;margin-top:16px;font-size:.8rem;color:var(--gray-400);">
+        <i class="fas fa-info-circle"></i> Example: CRT-2024-001, CRT-2023-045
+      </p>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   FOOTER
+   FOOTER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <footer id="footer">
   <div class="footer-top">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="{{ route('home') }}" class="logo">
             <div class="logo-mark">LI</div>
             <div class="logo-text">
-              <strong>Leeds Institute</strong>
-              <span>Quality Education Since 2005</span>
+              <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+              <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
             </div>
           </a>
-          <p>Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.</p>
+          <p>{{ $settings['about']['about_us'] ?? 'Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.' }}</p>
           <div class="footer-social">
-            <a href="#" class="social-btn" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-btn" title="Twitter" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="social-btn" title="Instagram" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-btn" title="YouTube" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="social-btn" title="WhatsApp" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-            <a href="#" class="social-btn" title="LinkedIn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @if($settings['social']['facebook'] ?? false)
+              <a href="{{ $settings['social']['facebook'] }}" class="social-btn" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            @endif
+            @if($settings['social']['twitter'] ?? false)
+              <a href="{{ $settings['social']['twitter'] }}" class="social-btn" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+            @endif
+            @if($settings['social']['instagram'] ?? false)
+              <a href="{{ $settings['social']['instagram'] }}" class="social-btn" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            @endif
+            @if($settings['social']['youtube'] ?? false)
+              <a href="{{ $settings['social']['youtube'] }}" class="social-btn" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+            @endif
+            @if($settings['social']['linkedin'] ?? false)
+              <a href="{{ $settings['social']['linkedin'] }}" class="social-btn" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @endif
+            @if($settings['social']['tiktok'] ?? false)
+              <a href="{{ $settings['social']['tiktok'] }}" class="social-btn" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            @endif
           </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
-            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
-            <li><a href="teachers.html"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
-            <li><a href="gallery.html"><i class="fas fa-chevron-right"></i> Gallery</a></li>
-            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+            <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="{{ route('aboutus') }}"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="{{ route('teachers') }}"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
+            <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> Gallery</a></li>
+            <li><a href="{{ route('contact') }}"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Programs</h4>
           <ul>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Medical</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Engineering</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> ICS / I.Com</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Matric Science</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Computer Diploma</a></li>
+            @foreach($allCourses->take(5) as $course)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> {{ $course->title }}</a></li>
+            @endforeach
+            <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> View All Courses</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Admissions</h4>
           <ul>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Contact Info</h4>
           <ul class="footer-contact">
-            <li><i class="fas fa-map-marker-alt"></i> Main Road, City, Pakistan</li>
-            <li><i class="fas fa-phone"></i> +92-XXX-XXXXXXX</li>
-            <li><i class="fas fa-envelope"></i> info@leedsinstitute.edu.pk</li>
-            <li><i class="fab fa-whatsapp"></i> +92-XXX-XXXXXXX</li>
+            <li><i class="fas fa-map-marker-alt"></i> {{ $settings['contact']['address'] ?? 'Main Road, City, Pakistan' }}</li>
+            <li><i class="fas fa-phone"></i> {{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}</li>
+            <li><i class="fas fa-envelope"></i> {{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}</li>
+            <li><i class="fab fa-whatsapp"></i> {{ $settings['contact']['whatsapp'] ?? '+92-XXX-XXXXXXX' }}</li>
             <li><i class="fas fa-clock"></i> Mon–Sat: 8:00 AM – 5:00 PM</li>
           </ul>
         </div>
@@ -897,12 +763,12 @@
   <div class="container">
     <div class="footer-bottom">
       <div style="color:rgba(255,255,255,.45)">
-        &copy; 2025 Leeds Institute. All Rights Reserved.
+        &copy; {{ date('Y') }} {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. All Rights Reserved.
       </div>
       <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Sitemap</a>
+        <a href="{{ route('Terms_Privacy') }}">Privacy Policy</a>
+        <a href="{{ route('Terms_Privacy') }}">Terms & Conditions</a>
+        <a href="{{ route('crtverfictaion') }}">Verify Certificate</a>
       </div>
     </div>
   </div>
@@ -914,6 +780,7 @@
 <script>
   AOS.init({ duration: 700, once: true, offset: 60, easing: 'ease-out-cubic' });
 
+  // ─── Header Scroll ──────────────────────────────────────
   const header = document.getElementById('header');
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 50);
@@ -924,7 +791,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // ── Hamburger toggle ───────────────────────────────────
+  // ─── Hamburger toggle ───────────────────────────────────
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobileNav');
   const navClose = document.getElementById('navClose');
@@ -949,148 +816,86 @@
     link.addEventListener('click', closeNav);
   });
 
-  // ── Active nav link ─────────────────────────────────
+  // ─── Active nav link ─────────────────────────────────
   const navLinks = document.querySelectorAll('.nav-list a');
   navLinks.forEach(link => {
     link.classList.remove('active');
-    if (link.getAttribute('href') === 'results.html') {
+    if (link.getAttribute('href') === '{{ route("crtverfictaion") }}') {
       link.classList.add('active');
     }
   });
 
-  // ── Search Function ───────────────────────────────────
-  // Sample student data
-  const students = [
-    {
-      rollNo: '2024-001',
-      name: 'Muhammad Ali',
-      father: 'Ahmad Khan',
-      class: 'FSc Pre-Medical',
-      subjects: [
-        { name: 'Biology', marks: 85, total: 100 },
-        { name: 'Chemistry', marks: 78, total: 100 },
-        { name: 'Physics', marks: 82, total: 100 },
-        { name: 'English', marks: 70, total: 75 },
-        { name: 'Urdu', marks: 65, total: 75 },
-        { name: 'Pak Studies', marks: 50, total: 50 }
-      ]
-    },
-    {
-      rollNo: '2024-002',
-      name: 'Ayesha Tariq',
-      father: 'Tariq Mehmood',
-      class: 'FSc Pre-Engineering',
-      subjects: [
-        { name: 'Mathematics', marks: 92, total: 100 },
-        { name: 'Physics', marks: 88, total: 100 },
-        { name: 'Chemistry', marks: 75, total: 100 },
-        { name: 'English', marks: 72, total: 75 },
-        { name: 'Urdu', marks: 68, total: 75 },
-        { name: 'Pak Studies', marks: 45, total: 50 }
-      ]
-    },
-    {
-      rollNo: '2024-003',
-      name: 'Usman Khalid',
-      father: 'Khalid Mahmood',
-      class: 'ICS',
-      subjects: [
-        { name: 'Computer Science', marks: 90, total: 100 },
-        { name: 'Mathematics', marks: 85, total: 100 },
-        { name: 'Physics', marks: 70, total: 100 },
-        { name: 'English', marks: 68, total: 75 },
-        { name: 'Urdu', marks: 62, total: 75 },
-        { name: 'Pak Studies', marks: 48, total: 50 }
-      ]
-    },
-    {
-      rollNo: '2024-004',
-      name: 'Fatima Noor',
-      father: 'Muhammad Noor',
-      class: 'Matric (Science)',
-      subjects: [
-        { name: 'Mathematics', marks: 88, total: 100 },
-        { name: 'Science', marks: 82, total: 100 },
-        { name: 'English', marks: 74, total: 75 },
-        { name: 'Urdu', marks: 70, total: 75 },
-        { name: 'Islamiat', marks: 45, total: 50 },
-        { name: 'Pak Studies', marks: 42, total: 50 }
-      ]
-    }
-  ];
-
-  function searchResult(e) {
+  // ─── CRT Verification Function (FIXED) ─────────────────
+  function verifyCRT(e) {
     e.preventDefault();
     
-    const rollNo = document.getElementById('rollNo').value.trim().toLowerCase();
-    const name = document.getElementById('studentName').value.trim().toLowerCase();
-    const father = document.getElementById('fatherName').value.trim().toLowerCase();
-
-    const resultCard = document.getElementById('resultCard');
-    const noResult = document.getElementById('noResult');
-    const resultBody = document.getElementById('resultBody');
-    const resultSummary = document.getElementById('resultSummary');
-
-    // Find student
-    let student = null;
-    for (let s of students) {
-      const matchRoll = rollNo && s.rollNo.toLowerCase() === rollNo;
-      const matchName = name && s.name.toLowerCase().includes(name);
-      const matchFather = father && s.father.toLowerCase().includes(father);
+    const crtNumber = document.getElementById('crtNumber');
+    const errorDiv = document.getElementById('errorMsg');
+    const errorText = document.getElementById('errorText');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    
+    // Get the value and trim whitespace
+    const number = crtNumber.value.trim();
+    
+    // Validate - must not be empty
+    if (!number) {
+      errorText.textContent = 'Please enter a CRT number.';
+      errorDiv.style.display = 'block';
+      crtNumber.style.borderColor = 'var(--red)';
       
-      if (matchRoll || matchName || matchFather) {
-        student = s;
-        break;
-      }
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+        crtNumber.style.borderColor = '';
+      }, 3000);
+      
+      return false;
     }
-
-    if (student) {
-      // Show result
-      resultCard.classList.add('show');
-      noResult.classList.remove('show');
+    
+    // Validate - minimum length
+    if (number.length < 5) {
+      errorText.textContent = 'Please enter a valid CRT number (minimum 5 characters).';
+      errorDiv.style.display = 'block';
+      crtNumber.style.borderColor = 'var(--red)';
       
-      // Update header
-      document.getElementById('displayName').textContent = student.name;
-      document.getElementById('displayFather').textContent = `S/o: ${student.father}`;
-      document.getElementById('displayRoll').textContent = `Roll: ${student.rollNo} | ${student.class}`;
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+        crtNumber.style.borderColor = '';
+      }, 3000);
       
-      // Build subjects
-      let subjectsHTML = '';
-      let totalMarks = 0;
-      let totalObtained = 0;
-      
-      student.subjects.forEach(sub => {
-        totalMarks += sub.total;
-        totalObtained += sub.marks;
-        const pass = sub.marks >= (sub.total * 0.4);
-        subjectsHTML += `
-          <div class="result-item">
-            <span class="subject">${sub.name}</span>
-            <span class="marks ${pass ? 'pass' : 'fail'}">${sub.marks} / ${sub.total}</span>
-          </div>
-        `;
-      });
-      
-      // Calculate percentage
-      const percentage = ((totalObtained / totalMarks) * 100);
-      const passed = percentage >= 40;
-      
-      resultBody.innerHTML = subjectsHTML + `
-        <div class="result-summary">
-          <span class="total">Total: ${totalObtained} / ${totalMarks}</span>
-          <span class="percentage">Percentage: ${percentage.toFixed(1)}%</span>
-          <span class="status ${passed ? 'pass' : 'fail'}">${passed ? '✓ PASS' : '✗ FAIL'}</span>
-        </div>
-      `;
-      
-      // Scroll to result
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      // Show no result
-      resultCard.classList.remove('show');
-      noResult.classList.add('show');
+      return false;
     }
+    
+    // Hide error if shown
+    errorDiv.style.display = 'none';
+    crtNumber.style.borderColor = '';
+    
+    // Show loading state
+    btnText.textContent = 'Verifying...';
+    btnSpinner.style.display = 'inline-block';
+    verifyBtn.disabled = true;
+    
+    // Redirect directly to the certificate verification page
+    // Using the correct route URL pattern
+    var verifyUrl = '{{ url("/crtverfictaion") }}/' + encodeURIComponent(number);
+    window.location.href = verifyUrl;
+    
+    return false;
   }
+
+  // ─── Enter key support ──────────────────────────────────
+  document.getElementById('crtNumber').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('crtForm').dispatchEvent(new Event('submit'));
+    }
+  });
+
+  // ─── Auto-uppercase input ──────────────────────────────
+  document.getElementById('crtNumber').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+  });
 </script>
 </body>
 </html>

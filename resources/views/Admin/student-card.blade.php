@@ -11,6 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        /* ─── ALL EXISTING STYLES KEPT ─── */
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -472,92 +473,114 @@
             color: #94A3B8;
         }
 
+        /* ─── CR80 Card Size (85.60mm × 53.98mm) ─── */
         .mini-card {
-            width: 100%;
-            aspect-ratio: 380/240;
-            border-radius: 12px;
+            width: 85.60mm;
+            height: 53.98mm;
+            border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
             border: 1px solid #E2E8F0;
             position: relative;
             background: #fff;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
         }
         .mini-card .card-top-bar {
-            height: 32px;
+            height: 14mm;
             background: linear-gradient(135deg, #6D4AFF, #4F46E5);
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 0 12px;
+            justify-content: space-between;
+            padding: 0 6mm;
             position: relative;
         }
         .mini-card .card-top-bar .academy-name {
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 5mm;
+            font-weight: 800;
             letter-spacing: 1.5px;
             color: #fff;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 2mm;
         }
-        .mini-card .card-top-bar .academy-name i { font-size: 12px; }
+        .mini-card .card-top-bar .academy-name i { font-size: 5mm; }
         .mini-card .card-top-bar .card-type {
-            position: absolute;
-            right: 12px;
-            font-size: 7px;
-            font-weight: 600;
+            font-size: 3mm;
+            font-weight: 700;
             letter-spacing: 1px;
-            background: rgba(255,255,255,0.12);
-            padding: 2px 10px;
+            background: rgba(255,255,255,0.15);
+            padding: 1mm 3mm;
             border-radius: 30px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.9);
+            border: 0.5px solid rgba(255,255,255,0.1);
         }
         .mini-card .card-body-white {
-            padding: 10px 14px 8px;
+            padding: 3mm 5mm 2mm;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 3mm;
             background: #fff;
-            min-height: 100px;
+            min-height: 32mm;
         }
         .mini-card .card-body-white .avatar {
-            width: 44px;
-            height: 44px;
+            width: 12mm;
+            height: 12mm;
             border-radius: 50%;
             background: linear-gradient(135deg, #6D4AFF, #4F46E5);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 5mm;
             font-weight: 700;
             color: #fff;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(109,74,255,0.2);
+            box-shadow: 0 1px 4px rgba(109,74,255,0.2);
         }
-        .mini-card .card-body-white .details .student-name { font-size: 13px; font-weight: 700; color: #0F172A; }
-        .mini-card .card-body-white .details .student-id { font-size: 10px; color: #64748B; }
-        .mini-card .card-body-white .details .student-id span { font-weight: 600; color: #1E293B; }
-        .mini-card .card-body-white .details .student-dob { font-size: 9px; color: #94A3B8; }
+        .mini-card .card-body-white .details .student-name { 
+            font-size: 4.5mm; 
+            font-weight: 700; 
+            color: #0F172A;
+            line-height: 1.2;
+        }
+        .mini-card .card-body-white .details .student-id { 
+            font-size: 3mm; 
+            color: #64748B; 
+        }
+        .mini-card .card-body-white .details .student-id span { 
+            font-weight: 600; 
+            color: #1E293B; 
+        }
+        .mini-card .card-body-white .details .student-dob { 
+            font-size: 2.8mm; 
+            color: #94A3B8; 
+        }
         .mini-card .card-footer-bar {
-            height: 28px;
+            height: 7mm;
             background: #F8FAFC;
-            border-top: 1px solid #F1F5F9;
+            border-top: 0.5px solid #F1F5F9;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 14px;
+            padding: 0 5mm;
         }
-        .mini-card .card-footer-bar .footer-left { font-size: 8px; color: #94A3B8; }
-        .mini-card .card-footer-bar .footer-left .reg-no { font-weight: 600; color: #6D4AFF; }
+        .mini-card .card-footer-bar .footer-left { 
+            font-size: 2.5mm; 
+            color: #94A3B8; 
+        }
+        .mini-card .card-footer-bar .footer-left .reg-no { 
+            font-weight: 600; 
+            color: #6D4AFF; 
+        }
         .mini-card .card-footer-bar .qr-code {
-            width: 24px;
-            height: 24px;
+            width: 6mm;
+            height: 6mm;
             background: #F1F5F9;
-            border-radius: 6px;
+            border-radius: 2mm;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 4mm;
             color: #94A3B8;
         }
 
@@ -646,52 +669,114 @@
         .delete-modal .modal h3 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
         .delete-modal .modal p { color: #64748B; font-size: 14px; }
 
+        /* ─── PRINT LAYOUT ─── */
         @media print {
-            html, body { margin:0; padding:0; background:#fff; }
-            body * { visibility: hidden; }
-            .modal { visibility: visible; }
-            .modal * { visibility: visible; }
-            .modal-overlay { 
-                position: fixed; 
-                inset: 0; 
+            html, body { 
+                margin: 0; 
+                padding: 0; 
                 background: #fff; 
-                padding: 0; 
-                margin:0; 
-                display:block !important;
+                width: 210mm; 
+                height: 297mm;
             }
-            .modal { 
-                max-width: 100%; 
-                max-height: 100%; 
-                box-shadow: none; 
-                padding: 0; 
-                margin:0; 
-                border-radius:0; 
-                overflow:hidden;
-                display:block !important;
-            }
-            .modal-header { display: none !important; }
-            .modal-close { display: none !important; }
-            .modal .print-hide { display: none !important; }
             
-            .card-print-grid { 
-                display: grid !important; 
-                grid-template-columns: 1fr 1fr !important; 
-                gap: 12px !important; 
-                padding: 12px !important; 
-                margin:0 !important; 
-                max-width:100% !important;
-                height:100vh !important;
-                align-content: center !important;
+            /* Hide everything except print content */
+            body * { visibility: hidden; }
+            
+            #printPortal, #printPortal * { 
+                visibility: visible !important; 
             }
-            .card-print-grid .mini-card { 
-                border: 1px solid #E2E8F0; 
-                border-radius: 10px; 
+            
+            #printPortal {
+                display: block !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 210mm;
+                min-height: 297mm;
+                background: #fff;
+                padding: 0;
+                margin: 0;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .print-page {
+                display: block !important;
+                width: 210mm;
+                min-height: 297mm;
+                page-break-after: always;
+                padding: 5mm 3mm;
+                box-sizing: border-box;
+                position: relative;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .print-page:last-child {
+                page-break-after: avoid;
+            }
+            
+            .print-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, 85.60mm);
+                grid-template-rows: repeat(5, 53.98mm);
+                gap: 3mm 3mm;
+                justify-content: center;
+                align-content: start;
+                width: 100%;
+                height: 100%;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                padding: 2mm 0;
+            }
+            
+            .print-grid .mini-card {
+                width: 85.60mm;
+                height: 53.98mm;
+                border-radius: 4px;
+                overflow: hidden;
+                border: 0.5px solid #E2E8F0;
+                background: #fff;
                 page-break-inside: avoid;
-                height: auto !important;
-                aspect-ratio: 380/240;
-                box-shadow: none !important;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .print-grid .mini-card * {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            /* Hide empty grid cells */
+            .print-grid .mini-card.empty {
+                visibility: hidden !important;
+                border: none !important;
+                background: transparent !important;
+            }
+            
+            @page {
+                size: A4 portrait;
+                margin: 0;
+                padding: 0;
             }
         }
+
+        /* ─── BULK PRINT MODAL ─── */
+        .print-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 8px;
+            max-width: 100%;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 45; }
+        .overlay.active { display: block; }
 
         @media (max-width: 1024px) {
             .card-preview-section { grid-template-columns: 1fr; }
@@ -708,8 +793,6 @@
             .student-list-card { max-height: 400px; }
             .modal { padding: 20px 18px; }
         }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 45; }
-        .overlay.active { display: block; }
     </style>
 </head>
 <body>
@@ -717,8 +800,7 @@
     <div class="overlay" id="overlay"></div>
 
     <!-- ─── SIDEBAR ─── -->
-      @include('admin.sidebar')
-
+    @include('admin.sidebar')
 
     <!-- ─── MAIN ─── -->
     <div class="main">
@@ -889,13 +971,11 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const data = await response.json();
-                // We need students with their card status
                 const studentsResponse = await fetch('{{ route("admin.students.index") }}', {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const studentsData = await studentsResponse.json();
                 
-                // Merge card data with students
                 const cards = data.data || [];
                 const allStudents = studentsData.data || [];
                 
@@ -921,12 +1001,11 @@
             } catch (error) {
                 console.error('Error loading students:', error);
                 showToast('⚠️ Error loading students');
-                // Fallback demo data
                 loadDemoData();
             }
         }
 
-        // ─── Demo Data (fallback) ───
+        // ─── Demo Data ───
         function loadDemoData() {
             students = [
                 { id: 1, student_id: 'STU-001', name: 'Rosa Maria', father_name: 'Carlos Maria', dob: '20 Jan 2002', address: '123 Anywhere St., Any City', status: 'Active', issued: false, reg_no: null },
@@ -1066,8 +1145,6 @@
             const issueDate = student.issue_date ? new Date(student.issue_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
             const regNo = student.reg_no || 'REG-2026-0000';
             const cardNo = student.card_no || 'CARD-0000';
-            const issuedStatus = student.issued ? '✓ Issued' : 'Not Issued';
-            const statusColor = student.issued ? '#10B981' : '#F59E0B';
             
             container.innerHTML = `
                 <div id="studentCard">
@@ -1105,7 +1182,6 @@
                 return;
             }
             
-            // Check if any already have cards
             const alreadyIssued = selected.filter(s => s.issued);
             if (alreadyIssued.length > 0) {
                 if (!confirm(`${alreadyIssued.length} student(s) already have cards. Continue with remaining?`)) {
@@ -1138,7 +1214,6 @@
                     showToast('⚠️ ' + (result.message || 'Error issuing cards'));
                 }
             } catch (error) {
-                // Fallback for demo
                 selected.forEach(s => { s.issued = true; });
                 if (selectedStudent && selected.some(s => s.id === selectedStudent.id)) {
                     renderCard(selectedStudent);
@@ -1147,12 +1222,6 @@
                 showToast('✅ ' + selected.length + ' card(s) issued successfully!');
             }
         }
-
-        // ─── Open Issue Modal ───
-        document.getElementById('issue-selected-btn')?.addEventListener('click', function() {
-            document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
-            openModal('issueModal');
-        });
 
         // ─── Issue Single Card ───
         async function issueCard(e) {
@@ -1191,7 +1260,6 @@
                     }
                 }
             } catch (error) {
-                // Fallback for demo
                 const student = students.find(s => s.id === parseInt(studentId));
                 if (student) {
                     student.issued = true;
@@ -1203,6 +1271,32 @@
                 applyFilters();
                 showToast('✅ Card issued successfully!');
             }
+        }
+
+        // ─── Create Mini Card HTML ───
+        function createMiniCardHTML(student, index) {
+            const initials = student.name.split(' ').map(w => w[0]).join('').toUpperCase();
+            const regNo = student.reg_no || 'REG-2026-0000';
+            return `
+                <div class="mini-card" data-index="${index}">
+                    <div class="card-top-bar">
+                        <div class="academy-name"><i class="fas fa-graduation-cap"></i> Leeds</div>
+                        <div class="card-type">ID</div>
+                    </div>
+                    <div class="card-body-white">
+                        <div class="avatar">${initials}</div>
+                        <div class="details">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-id">ID: ${student.student_id}</div>
+                            <div class="student-dob">DOB: ${student.dob || '-'}</div>
+                        </div>
+                    </div>
+                    <div class="card-footer-bar">
+                        <div class="footer-left"><span class="reg-no">${regNo}</span></div>
+                        <div class="qr-code"><i class="fas fa-qrcode"></i></div>
+                    </div>
+                </div>
+            `;
         }
 
         // ─── Print Selected ───
@@ -1226,113 +1320,224 @@
         }
 
         // ─── Show Bulk Print Modal ───
-        function showBulkPrintModal(students) {
+        function showBulkPrintModal(selectedStudents) {
             const container = document.getElementById('printGridContainer');
             const modal = document.getElementById('printModal');
             
-            let html = `<div class="card-print-grid">`;
-            students.forEach((s, idx) => {
-                const initials = s.name.split(' ').map(w => w[0]).join('').toUpperCase();
-                const issueDate = s.issue_date ? new Date(s.issue_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-                const regNo = s.reg_no || 'REG-2026-0000';
-                const cardNo = s.card_no || 'CARD-0000';
-                html += `
-                    <div class="mini-card" id="miniCard_${idx}">
-                        <div class="card-top-bar">
-                            <div class="academy-name"><i class="fas fa-graduation-cap"></i> Leeds</div>
-                            <div class="card-type">ID</div>
-                        </div>
-                        <div class="card-body-white">
-                            <div class="avatar">${initials}</div>
-                            <div class="details">
-                                <div class="student-name">${s.name}</div>
-                                <div class="student-id">ID: ${s.student_id}</div>
-                                <div class="student-dob">DOB: ${s.dob || '-'}</div>
-                            </div>
-                        </div>
-                        <div class="card-footer-bar">
-                            <div class="footer-left"><span class="reg-no">${regNo}</span></div>
-                            <div class="qr-code"><i class="fas fa-qrcode"></i></div>
-                        </div>
-                    </div>
-                `;
+            let html = `<div class="print-grid-container">`;
+            selectedStudents.forEach((s, idx) => {
+                html += createMiniCardHTML(s, idx);
             });
             html += `</div>`;
             container.innerHTML = html;
             modal.classList.add('active');
         }
 
-        // ─── Bulk PDF Download ───
-        function downloadBulkPDF() {
+        // ─── Download Bulk PDF ───
+        async function downloadBulkPDF() {
             const cards = document.querySelectorAll('.mini-card');
             if (cards.length === 0) { showToast('⚠️ No cards to download'); return; }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            const cardsPerPage = 6;
-            const pageWidth = 297;
-            const pageHeight = 210;
-            const margin = 8;
-            const cardWidth = (pageWidth - margin * 3) / 2;
-            const cardHeight = cardWidth * (240/380);
             
-            let completed = 0;
-            cards.forEach((card, idx) => {
-                if (idx % cardsPerPage === 0 && idx > 0) doc.addPage();
-                const col = idx % 2;
-                const row = Math.floor((idx % cardsPerPage) / 2);
-                const x = margin + col * (cardWidth + margin);
-                const y = margin + row * (cardHeight + margin);
-                html2canvas(card, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
-                    .then(canvas => {
-                        const imgData = canvas.toDataURL('image/png');
+            showToast('⏳ Generating PDF...');
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const margin = 5;
+            const cardWidth = 85.6;
+            const cardHeight = 53.98;
+            const gapX = 3;
+            const gapY = 3;
+            const cardsPerRow = 2;
+            const cardsPerPage = 10;
+            
+            let pageIndex = 0;
+            let cardIndex = 0;
+            
+            // Group cards into pages of 10
+            const cardGroups = [];
+            for (let i = 0; i < cards.length; i += cardsPerPage) {
+                cardGroups.push(Array.from(cards).slice(i, i + cardsPerPage));
+            }
+            
+            for (let g = 0; g < cardGroups.length; g++) {
+                if (g > 0) doc.addPage();
+                
+                const group = cardGroups[g];
+                const startX = margin;
+                const startY = margin;
+                
+                // Capture each card as image and add to PDF
+                for (let i = 0; i < group.length; i++) {
+                    const card = group[i];
+                    const col = i % cardsPerRow;
+                    const row = Math.floor(i / cardsPerRow);
+                    const x = startX + col * (cardWidth + gapX);
+                    const y = startY + row * (cardHeight + gapY);
+                    
+                    try {
+                        const canvas = await html2canvas(card, {
+                            scale: 3,
+                            useCORS: true,
+                            logging: false,
+                            backgroundColor: '#ffffff',
+                            width: cardWidth * 3.78,
+                            height: cardHeight * 3.78,
+                            onclone: function(clonedDoc) {
+                                // Ensure card styles are preserved
+                            }
+                        });
+                        const imgData = canvas.toDataURL('image/png', 1.0);
                         doc.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
-                        completed++;
-                        if (completed === cards.length) {
-                            doc.save('student_cards.pdf');
-                            showToast('📄 PDF downloaded successfully!');
-                        }
-                    });
-            });
+                    } catch (err) {
+                        console.error('Error capturing card:', err);
+                    }
+                }
+                
+                // Add empty slots if any
+                const remaining = cardsPerPage - group.length;
+                if (remaining > 0 && g === cardGroups.length - 1) {
+                    // Last page, leave empty slots
+                }
+            }
+            
+            doc.save('student_cards.pdf');
+            showToast('📄 PDF downloaded successfully!');
         }
 
         // ─── Bulk PNG Download ───
-        function downloadBulkPNG() {
+        async function downloadBulkPNG() {
             const cards = document.querySelectorAll('.mini-card');
             if (cards.length === 0) { showToast('⚠️ No cards to download'); return; }
-            const grid = document.querySelector('.card-print-grid');
-            html2canvas(grid, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
-                .then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'student_cards.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    showToast('🖼️ PNG downloaded successfully!');
+            
+            showToast('⏳ Generating PNG...');
+            
+            // Create a grid layout for all cards
+            const container = document.createElement('div');
+            container.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(2, 85.6mm);
+                gap: 3mm 3mm;
+                padding: 5mm;
+                background: white;
+                width: ${210 - 10}mm;
+                justify-content: center;
+            `;
+            document.body.appendChild(container);
+            
+            cards.forEach(card => {
+                const clone = card.cloneNode(true);
+                container.appendChild(clone);
+            });
+            
+            try {
+                const canvas = await html2canvas(container, {
+                    scale: 3,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
                 });
+                
+                const link = document.createElement('a');
+                link.download = 'student_cards.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                showToast('🖼️ PNG downloaded successfully!');
+            } catch (err) {
+                console.error('PNG Error:', err);
+                showToast('❌ PNG generation failed');
+            } finally {
+                document.body.removeChild(container);
+            }
         }
 
         // ─── Bulk Print ───
-        function printBulk() { window.print(); }
-
-        // ─── Modal Close ───
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function printBulk() {
+            const cards = document.querySelectorAll('.mini-card');
+            if (cards.length === 0) { showToast('⚠️ No cards to print'); return; }
+            
+            // Create print portal
+            const portal = document.getElementById('printPortal');
+            if (!portal) {
+                const newPortal = document.createElement('div');
+                newPortal.id = 'printPortal';
+                document.body.appendChild(newPortal);
+            }
+            
+            const printContainer = document.getElementById('printPortal');
+            printContainer.innerHTML = '';
+            
+            // Group cards into pages of 10
+            const cardsPerPage = 10;
+            const cardArray = Array.from(cards);
+            
+            for (let i = 0; i < cardArray.length; i += cardsPerPage) {
+                const pageCards = cardArray.slice(i, i + cardsPerPage);
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'print-page';
+                
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'print-grid';
+                
+                pageCards.forEach(card => {
+                    const clone = card.cloneNode(true);
+                    gridDiv.appendChild(clone);
+                });
+                
+                // Add empty slots to complete the grid
+                const remaining = cardsPerPage - pageCards.length;
+                for (let e = 0; e < remaining; e++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'mini-card empty';
+                    gridDiv.appendChild(empty);
+                }
+                
+                pageDiv.appendChild(gridDiv);
+                printContainer.appendChild(pageDiv);
+            }
+            
+            // Trigger print
+            window.print();
+            
+            // Clean up after print
+            setTimeout(() => {
+                printContainer.innerHTML = '';
+            }, 1000);
+        }
 
         // ─── Single Card PDF ───
         function downloadPDF() {
             const card = document.getElementById('studentCard');
             if (!card) { showToast('⚠️ Please select a student first'); return; }
             if (!selectedStudent.issued) { showToast('⚠️ Card must be issued first'); return; }
+            
+            showToast('⏳ Generating PDF...');
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', [105, 75]);
-            html2canvas(card, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
-                .then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdfWidth = 95;
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    doc.addImage(imgData, 'PNG', 5, 5, pdfWidth, pdfHeight);
-                    doc.save('student_card.pdf');
-                    showToast('📄 PDF downloaded successfully!');
-                });
+            html2canvas(card, { 
+                scale: 3, 
+                useCORS: true, 
+                logging: false, 
+                backgroundColor: '#ffffff',
+                width: 380,
+                height: 240
+            })
+            .then(canvas => {
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                const pdfWidth = 95;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                doc.addImage(imgData, 'PNG', 5, 5, pdfWidth, pdfHeight);
+                doc.save('student_card.pdf');
+                showToast('📄 PDF downloaded successfully!');
+            })
+            .catch(err => {
+                console.error('PDF Error:', err);
+                showToast('❌ PDF generation failed');
+            });
         }
 
         // ─── Single Card PNG ───
@@ -1340,14 +1545,28 @@
             const card = document.getElementById('studentCard');
             if (!card) { showToast('⚠️ Please select a student first'); return; }
             if (!selectedStudent.issued) { showToast('⚠️ Card must be issued first'); return; }
-            html2canvas(card, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
-                .then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'student_card.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    showToast('🖼️ PNG downloaded successfully!');
-                });
+            
+            showToast('⏳ Generating PNG...');
+            
+            html2canvas(card, { 
+                scale: 3, 
+                useCORS: true, 
+                logging: false, 
+                backgroundColor: '#ffffff',
+                width: 380,
+                height: 240
+            })
+            .then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'student_card.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                showToast('🖼️ PNG downloaded successfully!');
+            })
+            .catch(err => {
+                console.error('PNG Error:', err);
+                showToast('❌ PNG generation failed');
+            });
         }
 
         // ─── Single Card Print ───
@@ -1366,6 +1585,10 @@
             clearTimeout(toast._timer);
             toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
         }
+
+        // ─── Modal Functions ───
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
 
         // ─── Sidebar Toggle ───
         function toggleSidebar() {

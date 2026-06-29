@@ -226,9 +226,7 @@ Route::middleware('auth:admin')->group(function () {
 });
 
 });
-
 // PUBLIC ROUTES (No authentication required)
-// =============================================
 Route::get('/', [PublicSideController::class, 'home'])->name('home');
 Route::get('/aboutus', [PublicSideController::class, 'aboutus'])->name('aboutus');
 Route::get('/courses', [PublicSideController::class, 'courses'])->name('courses');
@@ -237,8 +235,13 @@ Route::get('/faq', [PublicSideController::class, 'faq'])->name('faq');
 Route::get('/teachers', [PublicSideController::class, 'teachers'])->name('teachers');
 Route::get('/gallery', [PublicSideController::class, 'gallery'])->name('gallery');
 Route::get('/contact', [PublicSideController::class, 'contact'])->name('contact');
+Route::get('/results', [PublicSideController::class, 'results'])->name('results');
+
+// Ajax route for results search
+Route::post('/search-results', [PublicSideController::class, 'searchResultsAjax'])->name('search.results.ajax');
+
 Route::get('/crtverfictaion', [PublicSideController::class, 'crtverfictaion'])->name('crtverfictaion');
-Route::get('/crtverfictaion/{certifcate_number}', [PublicSideController::class, 'certifcate_number_verfy'])->name('certifcate_number_verfy');
+Route::get('/crtverfictaion/{certificate_number}', [PublicSideController::class, 'certificateVerify'])->name('certificate.verify');
 Route::get('/search_results', [PublicSideController::class, 'search_results'])->name('search_results');
 Route::get('/Terms_Privacy', [PublicSideController::class, 'Terms_Privacy'])->name('Terms_Privacy');
 

@@ -12,13 +12,13 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #F0F2F5;
+      background: #F5F7FA;
       color: #1E293B;
       display: flex;
       min-height: 100vh;
     }
 
-    /* Premium Sidebar */
+    /* ─── SIDEBAR (Red & Yellow) ─── */
     .sidebar {
       width: 280px;
       background: linear-gradient(180deg, #0A1628 0%, #1A2A4A 100%);
@@ -35,9 +35,9 @@
       z-index: 50;
       box-shadow: 4px 0 30px rgba(0,0,0,0.15);
     }
-    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar { width: 6px; }
     .sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-    .sidebar::-webkit-scrollbar-thumb { background: #6D4AFF; border-radius: 10px; }
+    .sidebar::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFC107, #E53935); border-radius: 10px; }
 
     .sidebar-brand {
       display: flex;
@@ -45,10 +45,9 @@
       gap: 14px;
       margin-bottom: 40px;
       padding: 4px 6px;
-      position: relative;
     }
     .sidebar-brand .logo-icon {
-      background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
+      background: linear-gradient(135deg, #E53935, #FFC107, #E53935);
       width: 48px;
       height: 48px;
       border-radius: 14px;
@@ -57,11 +56,13 @@
       justify-content: center;
       font-size: 24px;
       color: #fff;
-      box-shadow: 0 4px 15px rgba(109,74,255,0.3);
+      box-shadow: 0 4px 20px rgba(229,57,53,0.4);
+      transition: all 0.3s;
+      border: 2px solid rgba(255,193,7,0.2);
     }
-    .sidebar-brand .brand-text {
-      display: flex;
-      flex-direction: column;
+    .sidebar-brand .logo-icon:hover {
+      transform: scale(1.05) rotate(-5deg);
+      box-shadow: 0 8px 30px rgba(229,57,53,0.5);
     }
     .sidebar-brand .brand-text .name {
       font-weight: 800;
@@ -69,14 +70,13 @@
       letter-spacing: -0.5px;
       color: #fff;
     }
-    .sidebar-brand .brand-text .name span { color: #8B6FFF; }
+    .sidebar-brand .brand-text .name span { color: #FFC107; }
     .sidebar-brand .brand-text .tagline {
       font-size: 10px;
       font-weight: 500;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,193,7,0.5);
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-top: 0px;
     }
 
     .sidebar-menu {
@@ -87,7 +87,7 @@
     .sidebar-menu .menu-label {
       font-size: 11px;
       font-weight: 600;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,193,7,0.4);
       text-transform: uppercase;
       letter-spacing: 1.5px;
       padding: 16px 12px 8px;
@@ -104,43 +104,30 @@
       font-size: 14px;
       text-decoration: none;
       transition: all 0.2s;
-      position: relative;
     }
     .sidebar-menu li a i {
       width: 20px;
       font-size: 16px;
       text-align: center;
       color: rgba(255,255,255,0.4);
-      transition: color 0.2s;
     }
     .sidebar-menu li a:hover {
-      background: rgba(255,255,255,0.08);
-      color: #fff;
+      background: rgba(255,193,7,0.08);
+      color: #FFC107;
       transform: translateX(3px);
     }
-    .sidebar-menu li a:hover i { color: #fff; }
+    .sidebar-menu li a:hover i { color: #E53935; }
     .sidebar-menu li.active a {
-      background: rgba(109,74,255,0.2);
-      color: #fff;
+      background: rgba(229,57,53,0.12);
+      color: #FFC107;
       font-weight: 600;
+      border-left: 3px solid #FFC107;
     }
-    .sidebar-menu li.active a i { color: #8B6FFF; }
-    .sidebar-menu li.active a::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 24px;
-      background: linear-gradient(180deg, #6D4AFF, #8B6FFF);
-      border-radius: 0 4px 4px 0;
-    }
+    .sidebar-menu li.active a i { color: #E53935; }
 
     .sidebar-footer {
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,193,7,0.1);
       padding-top: 16px;
-      margin-top: 8px;
     }
     .sidebar-footer .user-card {
       display: flex;
@@ -148,16 +135,20 @@
       gap: 12px;
       padding: 10px 12px;
       border-radius: 12px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,193,7,0.04);
       transition: background 0.2s;
       cursor: pointer;
+      border: 1px solid rgba(255,193,7,0.05);
     }
-    .sidebar-footer .user-card:hover { background: rgba(255,255,255,0.08); }
+    .sidebar-footer .user-card:hover {
+      background: rgba(255,193,7,0.08);
+      border-color: rgba(255,193,7,0.2);
+    }
     .sidebar-footer .user-card .avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
+      background: linear-gradient(135deg, #E53935, #FFC107);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -165,9 +156,7 @@
       font-size: 16px;
       color: #fff;
       flex-shrink: 0;
-    }
-    .sidebar-footer .user-card .info {
-      flex: 1;
+      box-shadow: 0 2px 15px rgba(229,57,53,0.3);
     }
     .sidebar-footer .user-card .info .name {
       font-weight: 600;
@@ -176,41 +165,41 @@
     }
     .sidebar-footer .user-card .info .role {
       font-size: 12px;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,193,7,0.5);
     }
     .sidebar-footer .user-card .badge {
-      background: #10B981;
+      background: #E53935;
       color: #fff;
       font-size: 9px;
       font-weight: 700;
       padding: 2px 10px;
       border-radius: 30px;
-      letter-spacing: 0.5px;
+      box-shadow: 0 2px 10px rgba(229,57,53,0.3);
     }
 
-    /* Main Content */
+    /* ─── MAIN ─── */
     .main {
       flex: 1;
-      background: #F0F2F5;
+      background: #F5F7FA;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* Topbar */
+    /* ─── TOPBAR ─── */
     .topbar {
-      background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(12px);
+      background: #FFFFFF;
       padding: 16px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
-      border-bottom: 1px solid rgba(0,0,0,0.04);
+      border-bottom: 1px solid #F1F5F9;
       position: sticky;
       top: 0;
       z-index: 40;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
     }
     .topbar-left { display: flex; align-items: center; gap: 16px; }
     .topbar-left .menu-toggle {
@@ -222,7 +211,6 @@
       display: none;
       padding: 6px 8px;
       border-radius: 8px;
-      transition: background 0.15s;
     }
     .topbar-left .menu-toggle:hover { background: #F1F5F9; }
     .topbar-left .page-title h2 {
@@ -254,9 +242,9 @@
       width: 240px;
     }
     .search-box:focus-within {
-      border-color: #6D4AFF;
+      border-color: #FFC107;
       background: #fff;
-      box-shadow: 0 0 0 4px rgba(109,74,255,0.08);
+      box-shadow: 0 0 0 4px rgba(229,57,53,0.08);
     }
     .search-box i {
       position: absolute;
@@ -290,7 +278,7 @@
       position: absolute;
       top: 4px;
       right: 4px;
-      background: #EF4444;
+      background: #E53935;
       color: #fff;
       font-size: 9px;
       font-weight: 700;
@@ -320,7 +308,7 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
+      background: linear-gradient(135deg, #E53935, #FFC107);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -381,10 +369,10 @@
     .dropdown-menu a i { width: 18px; color: #64748B; font-size: 14px; }
     .dropdown-divider { height: 1px; background: #F1F5F9; margin: 6px 12px; }
 
-    /* Dashboard Content */
+    /* ─── DASHBOARD CONTENT ─── */
     .dashboard-content { padding: 28px 32px 40px; flex: 1; }
 
-    /* Welcome Section Premium */
+    /* ─── WELCOME SECTION (Red & Yellow) ─── */
     .welcome-section {
       display: flex;
       justify-content: space-between;
@@ -392,10 +380,10 @@
       flex-wrap: wrap;
       gap: 20px;
       margin-bottom: 28px;
-      background: linear-gradient(135deg, #0A1628 0%, #1A2A4A 100%);
+     background: linear-gradient(135deg, #f2801c 0%, #ed6426 100%);
       border-radius: 20px;
       padding: 28px 32px;
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,193,7,0.1);
       box-shadow: 0 8px 32px rgba(10,22,40,0.15);
       position: relative;
       overflow: hidden;
@@ -407,7 +395,7 @@
       right: -10%;
       width: 300px;
       height: 300px;
-      background: radial-gradient(circle, rgba(109,74,255,0.1), transparent 70%);
+      background: radial-gradient(circle, rgba(229,57,53,0.08), transparent 70%);
       border-radius: 50%;
       pointer-events: none;
     }
@@ -418,7 +406,7 @@
       left: -5%;
       width: 200px;
       height: 200px;
-      background: radial-gradient(circle, rgba(139,111,255,0.08), transparent 70%);
+      background: radial-gradient(circle, rgba(255,193,7,0.06), transparent 70%);
       border-radius: 50%;
       pointer-events: none;
     }
@@ -429,7 +417,7 @@
       color: #fff;
       letter-spacing: -0.5px;
     }
-    .welcome-left h1 span { background: linear-gradient(135deg, #8B6FFF, #6D4AFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .welcome-left h1 span { color: #FFC107; }
     .welcome-left p {
       color: rgba(255,255,255,0.7);
       font-size: 14px;
@@ -462,13 +450,13 @@
       gap: 8px;
     }
     .welcome-btn.primary {
-      background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
+      background: linear-gradient(135deg, #FFC107, #E53935);
       color: #fff;
-      box-shadow: 0 4px 16px rgba(109,74,255,0.3);
+      box-shadow: 0 4px 16px rgba(229,57,53,0.3);
     }
     .welcome-btn.primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(109,74,255,0.4);
+      box-shadow: 0 8px 28px rgba(229,57,53,0.4);
     }
     .welcome-btn.success {
       background: #10B981;
@@ -490,24 +478,24 @@
       transform: translateY(-2px);
     }
 
-    /* Stats Grid */
+    /* ─── STATS GRID ─── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
       margin-bottom: 28px;
     }
     .stat-card {
       background: #fff;
       border-radius: 16px;
-      padding: 20px 18px;
+      padding: 18px 16px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.04);
       border: 1px solid #F1F5F9;
       transition: all 0.3s;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       position: relative;
       overflow: hidden;
     }
@@ -518,7 +506,7 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #6D4AFF, #8B6FFF);
+      background: linear-gradient(90deg, #E53935, #FFC107);
       opacity: 0;
       transition: opacity 0.3s;
     }
@@ -528,32 +516,31 @@
     }
     .stat-card:hover::after { opacity: 1; }
     .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       color: #fff;
       flex-shrink: 0;
     }
-    .stat-icon.purple { background: linear-gradient(135deg, #6D4AFF, #8B6FFF); }
-    .stat-icon.blue { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
+    .stat-icon.red { background: linear-gradient(135deg, #E53935, #F87171); }
+    .stat-icon.yellow { background: linear-gradient(135deg, #FFC107, #FBBF24); }
+    .stat-icon.blue { background: linear-gradient(135deg, #0B3C6D, #3B82F6); }
     .stat-icon.green { background: linear-gradient(135deg, #10B981, #34D399); }
     .stat-icon.orange { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
-    .stat-icon.teal { background: linear-gradient(135deg, #14B8A6, #2DD4BF); }
-    .stat-icon.red { background: linear-gradient(135deg, #EF4444, #F87171); }
-    .stat-icon.pink { background: linear-gradient(135deg, #EC4899, #F472B6); }
+    .stat-icon.purple { background: linear-gradient(135deg, #6D4AFF, #8B6FFF); }
 
     .stat-info h4 {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       color: #94A3B8;
       margin-bottom: 2px;
     }
     .stat-info .number {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 700;
       color: #0A1628;
       letter-spacing: -0.3px;
@@ -567,9 +554,9 @@
       margin-top: 2px;
     }
     .stat-info .trend.up { color: #10B981; }
-    .stat-info .trend.down { color: #EF4444; }
+    .stat-info .trend.down { color: #E53935; }
 
-    /* Cards */
+    /* ─── CARDS ─── */
     .row-grid {
       display: grid;
       grid-template-columns: 2fr 1fr;
@@ -599,16 +586,16 @@
       align-items: center;
       gap: 8px;
     }
+    .card-header h3 i { color: #E53935; }
     .card-header a {
       font-size: 13px;
       font-weight: 500;
-      color: #6D4AFF;
+      color: #FFC107;
       text-decoration: none;
       transition: 0.15s;
     }
-    .card-header a:hover { color: #5a3de0; }
+    .card-header a:hover { color: #E53935; }
 
-    /* Tables */
     .table-responsive { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th {
@@ -637,11 +624,9 @@
     }
     .status-badge.active { background: #DCFCE7; color: #10B981; }
     .status-badge.pending { background: #FEF3C7; color: #D97706; }
-    .status-badge.inactive { background: #FEE2E2; color: #DC2626; }
+    .status-badge.inactive { background: #FEE2E2; color: #E53935; }
     .status-badge.issued { background: #EDE7FF; color: #6D4AFF; }
-    .status-badge.partial { background: #FEF3C7; color: #D97706; }
     .status-badge.paid { background: #DCFCE7; color: #10B981; }
-    .status-badge.unpaid { background: #FEE2E2; color: #DC2626; }
 
     .avatar-sm {
       width: 32px;
@@ -677,17 +662,16 @@
       transition: all 0.25s;
       font-family: 'Inter', sans-serif;
     }
-    .quick-btn i { color: #6D4AFF; }
+    .quick-btn i { color: #E53935; }
     .quick-btn:hover {
-      background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
+      background: linear-gradient(135deg, #FFC107, #E53935);
       color: #fff;
-      border-color: #6D4AFF;
-      box-shadow: 0 4px 16px rgba(109,74,255,0.25);
+      border-color: #E53935;
+      box-shadow: 0 4px 16px rgba(229,57,53,0.25);
       transform: translateY(-2px);
     }
     .quick-btn:hover i { color: #fff; }
 
-    /* Course Grid */
     .course-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -702,10 +686,10 @@
       cursor: pointer;
     }
     .course-item:hover {
-      border-color: #6D4AFF;
-      background: #F5F0FF;
+      border-color: #FFC107;
+      background: #FFFBEB;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(109,74,255,0.08);
+      box-shadow: 0 4px 12px rgba(255,193,7,0.08);
     }
     .course-item .name { font-weight: 600; font-size: 14px; color: #0A1628; }
     .course-item .stats {
@@ -717,7 +701,6 @@
     }
     .course-item .stats span strong { color: #1E293B; }
 
-    /* Status Grid */
     .status-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -733,8 +716,8 @@
       cursor: pointer;
     }
     .status-item:hover {
-      background: #F5F0FF;
-      border-color: #6D4AFF;
+      background: #FFFBEB;
+      border-color: #FFC107;
     }
     .status-item .num {
       font-size: 22px;
@@ -747,7 +730,6 @@
       margin-top: 2px;
     }
 
-    /* Timeline */
     .timeline { margin-top: 4px; }
     .timeline-item {
       display: flex;
@@ -761,8 +743,8 @@
       width: 34px;
       height: 34px;
       border-radius: 30px;
-      background: #EDE7FF;
-      color: #6D4AFF;
+      background: #FFFBEB;
+      color: #E53935;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -772,7 +754,6 @@
     .timeline-content strong { font-weight: 600; color: #0A1628; }
     .timeline-time { font-size: 12px; color: #94A3B8; }
 
-    /* Task Items */
     .task-item {
       display: flex;
       justify-content: space-between;
@@ -780,7 +761,7 @@
       padding: 10px 14px;
       background: #F8FAFC;
       border-radius: 10px;
-      border-left: 3px solid #6D4AFF;
+      border-left: 3px solid #FFC107;
       transition: all 0.2s;
       cursor: pointer;
     }
@@ -789,7 +770,6 @@
     .task-item .task-left i { font-size: 14px; }
     .task-item .task-right { font-size: 12px; color: #94A3B8; }
 
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -808,10 +788,10 @@
       opacity: 0;
       transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       z-index: 9999;
-      border-left: 4px solid #6D4AFF;
+      border-left: 4px solid #FFC107;
     }
     .toast.show { transform: translateY(0); opacity: 1; }
-    .toast i { color: #8B6FFF; font-size: 18px; }
+    .toast i { color: #E53935; font-size: 18px; }
 
     .overlay {
       display: none;
@@ -827,13 +807,14 @@
       width: 18px;
       height: 18px;
       border: 3px solid rgba(255,255,255,0.2);
-      border-top: 3px solid #6D4AFF;
+      border-top: 3px solid #E53935;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     @media (max-width: 1200px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
       .row-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 992px) {
@@ -841,15 +822,7 @@
       .status-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-        width: 280px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100%;
-        z-index: 60;
-      }
+      .sidebar { transform: translateX(-100%); width: 270px; position: fixed; top:0; left:0; height:100%; }
       .sidebar.open { transform: translateX(0); }
       .topbar-left .menu-toggle { display: block; }
       .search-box { width: 140px; }
@@ -872,13 +845,13 @@
 
   <div class="overlay" id="overlay"></div>
 
-  <!-- SIDEBAR -->
-   @include('admin.sidebar')
+  <!-- ─── SIDEBAR ─── -->
+  @include('admin.sidebar')
 
-  <!-- MAIN -->
+  <!-- ─── MAIN ─── -->
   <div class="main">
 
-    <!-- TOPBAR -->
+    <!-- ─── TOPBAR ─── -->
     <header class="topbar">
       <div class="topbar-left">
         <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
@@ -921,7 +894,7 @@
       </div>
     </header>
 
-    <!-- DASHBOARD CONTENT -->
+    <!-- ─── DASHBOARD CONTENT ─── -->
     <div class="dashboard-content" id="dashboardContent">
 
       <!-- Welcome Section -->
@@ -942,67 +915,82 @@
         </div>
       </div>
 
-      <!-- Stats -->
+      <!-- ─── STATS ─── -->
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card" onclick="window.location.href='{{ url('/admin/students') }}'">
-          <div class="stat-icon purple"><i class="fas fa-user-graduate"></i></div>
+          <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
           <div class="stat-info">
             <h4>Total Students</h4>
-            <div class="number" id="statStudents">0</div>
-            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="studentTrend">0</span>%</div>
+            <div class="number" id="statStudents">{{ number_format($stats['total_students']) }}</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="studentTrend">{{ $stats['total_students'] > 0 ? rand(5,15) : 0 }}</span>%</div>
           </div>
         </div>
         <div class="stat-card" onclick="window.location.href='{{ url('/admin/teachers') }}'">
-          <div class="stat-icon blue"><i class="fas fa-chalkboard-teacher"></i></div>
+          <div class="stat-icon yellow"><i class="fas fa-chalkboard-teacher"></i></div>
           <div class="stat-info">
             <h4>Total Teachers</h4>
-            <div class="number" id="statTeachers">0</div>
-            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="teacherTrend">0</span>%</div>
+            <div class="number" id="statTeachers">{{ number_format($stats['total_teachers']) }}</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="teacherTrend">{{ $stats['total_teachers'] > 0 ? rand(3,10) : 0 }}</span>%</div>
           </div>
         </div>
         <div class="stat-card" onclick="window.location.href='{{ url('/admin/courses') }}'">
           <div class="stat-icon green"><i class="fas fa-book-open"></i></div>
           <div class="stat-info">
             <h4>Total Courses</h4>
-            <div class="number" id="statCourses">0</div>
-            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="courseTrend">0</span>%</div>
+            <div class="number" id="statCourses">{{ number_format($stats['total_courses']) }}</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="courseTrend">{{ $stats['total_courses'] > 0 ? rand(3,8) : 0 }}</span>%</div>
           </div>
         </div>
         <div class="stat-card" onclick="window.location.href='{{ url('/admin/enrollments') }}'">
           <div class="stat-icon orange"><i class="fas fa-users"></i></div>
           <div class="stat-info">
             <h4>Active Enrollments</h4>
-            <div class="number" id="statEnrollments">0</div>
-            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="enrollmentTrend">0</span>%</div>
+            <div class="number" id="statEnrollments">{{ number_format($stats['active_enrollments']) }}</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="enrollmentTrend">{{ $stats['active_enrollments'] > 0 ? rand(4,12) : 0 }}</span>%</div>
           </div>
         </div>
         <div class="stat-card" onclick="window.location.href='{{ url('/admin/fee-payments') }}'">
-          <div class="stat-icon teal"><i class="fas fa-dollar-sign"></i></div>
+          <div class="stat-icon red"><i class="fas fa-dollar-sign"></i></div>
           <div class="stat-info">
             <h4>Total Revenue</h4>
-            <div class="number" id="statRevenue">PKR 0</div>
-            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="revenueTrend">0</span>%</div>
+            <div class="number" id="statRevenue">PKR {{ number_format($stats['total_revenue']) }}</div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> <span id="revenueTrend">{{ $stats['total_revenue'] > 0 ? rand(5,20) : 0 }}</span>%</div>
           </div>
         </div>
         <div class="stat-card" onclick="window.location.href='{{ url('/admin/reports/remaining') }}'">
-          <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="stat-icon purple"><i class="fas fa-exclamation-triangle"></i></div>
           <div class="stat-info">
             <h4>Remaining Balance</h4>
-            <div class="number" id="statRemaining">PKR 0</div>
-            <div class="trend down"><i class="fas fa-arrow-down"></i> <span id="remainingTrend">0</span>%</div>
+            <div class="number" id="statRemaining">PKR {{ number_format($stats['remaining_balance']) }}</div>
+            <div class="trend down"><i class="fas fa-arrow-down"></i> <span id="remainingTrend">{{ $stats['remaining_balance'] > 0 ? rand(2,8) : 0 }}</span>%</div>
           </div>
         </div>
       </div>
 
-      <!-- Row 2: Recent Students + Recent Payments -->
+      <!-- ─── ROW 2: Recent Students + Recent Payments ─── -->
       <div class="row-grid">
         <div class="card">
-          <div class="card-header"><h3><i class="fas fa-user-graduate" style="color:#6D4AFF;"></i> Recent Students</h3><a href="{{ url('/admin/students') }}">View all</a></div>
+          <div class="card-header"><h3><i class="fas fa-user-graduate"></i> Recent Students</h3><a href="{{ url('/admin/students') }}">View all</a></div>
           <div class="table-responsive">
             <table>
               <thead><tr><th>Photo</th><th>Name</th><th>ID</th><th>Phone</th><th>Date</th><th>Status</th></tr></thead>
               <tbody id="recentStudents">
-                <tr><td colspan="6" style="text-align:center; padding:20px; color:#94A3B8;"><div class="loading-spinner"></div> Loading...</td></tr>
+                @forelse($recentStudents as $student)
+                <tr>
+                  <td>
+                    <div class="avatar-sm" style="background:{{ ['#E53935','#FFC107','#0B3C6D','#10B981','#F59E0B'][$loop->index % 5] }};">
+                      {{ Str::upper(substr($student->name ?? 'S', 0, 1)) }}
+                    </div>
+                  </td>
+                  <td><strong>{{ $student->name ?? 'N/A' }}</strong></td>
+                  <td>{{ $student->student_id ?? 'N/A' }}</td>
+                  <td>{{ $student->phone ?? 'N/A' }}</td>
+                  <td>{{ $student->created_at ? $student->created_at->format('d M Y') : 'N/A' }}</td>
+                  <td><span class="status-badge {{ $student->status ?? 'inactive' }}">{{ ucfirst($student->status ?? 'Inactive') }}</span></td>
+                </tr>
+                @empty
+                <tr><td colspan="6" style="text-align:center; padding:20px; color:#94A3B8;">No students found</td></tr>
+                @endforelse
               </tbody>
             </table>
           </div>
@@ -1013,49 +1001,69 @@
             <table>
               <thead><tr><th>Receipt</th><th>Student</th><th>Amount</th><th>Date</th><th>Method</th></tr></thead>
               <tbody id="recentPayments">
-                <tr><td colspan="5" style="text-align:center; padding:20px; color:#94A3B8;"><div class="loading-spinner"></div> Loading...</td></tr>
+                @forelse($recentPayments as $payment)
+                <tr>
+                  <td><strong>{{ $payment->receipt_no ?? 'REC-0000' }}</strong></td>
+                  <td>{{ $payment->enrollment->student->name ?? 'N/A' }}</td>
+                  <td>PKR {{ number_format($payment->amount ?? 0) }}</td>
+                  <td>{{ $payment->payment_date ? $payment->payment_date->format('d M Y') : 'N/A' }}</td>
+                  <td>{{ $payment->payment_method ?? 'N/A' }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="5" style="text-align:center; padding:20px; color:#94A3B8;">No payments found</td></tr>
+                @endforelse
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Row 3: Quick Analytics + Course Overview -->
+      <!-- ─── ROW 3: Quick Analytics + Course Overview ─── -->
       <div class="row-grid">
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-chart-bar" style="color:#F59E0B;"></i> Quick Analytics</h3><a href="{{ url('/admin/reports') }}">Details</a></div>
           <div id="quickAnalytics" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
             <div style="background:#F8FAFC; border-radius:12px; padding:14px 16px; border:1px solid #F1F5F9;">
               <div style="font-size:12px; color:#94A3B8;">Monthly Revenue</div>
-              <div style="font-size:20px; font-weight:700; color:#0A1628;" id="monthlyRevenue">PKR 0</div>
-              <div style="font-size:12px; color:#10B981;" id="monthlyRevenueTrend"><i class="fas fa-arrow-up"></i> 0%</div>
+              <div style="font-size:20px; font-weight:700; color:#0A1628;">PKR {{ number_format($monthlyRevenue ?? 0) }}</div>
+              <div style="font-size:12px; color:#10B981;"><i class="fas fa-arrow-up"></i> {{ $monthlyRevenue > 0 ? rand(5,15) : 0 }}%</div>
             </div>
             <div style="background:#F8FAFC; border-radius:12px; padding:14px 16px; border:1px solid #F1F5F9;">
               <div style="font-size:12px; color:#94A3B8;">Student Growth</div>
-              <div style="font-size:20px; font-weight:700; color:#0A1628;" id="studentGrowth">+0</div>
-              <div style="font-size:12px; color:#10B981;" id="studentGrowthTrend"><i class="fas fa-arrow-up"></i> 0%</div>
+              <div style="font-size:20px; font-weight:700; color:#0A1628;">+{{ $studentGrowth ?? 0 }}</div>
+              <div style="font-size:12px; color:#10B981;"><i class="fas fa-arrow-up"></i> {{ $studentGrowth > 0 ? rand(3,10) : 0 }}%</div>
             </div>
             <div style="background:#F8FAFC; border-radius:12px; padding:14px 16px; border:1px solid #F1F5F9;">
               <div style="font-size:12px; color:#94A3B8;">Course Enrollments</div>
-              <div style="font-size:20px; font-weight:700; color:#0A1628;" id="courseEnrollments">0</div>
-              <div style="font-size:12px; color:#F59E0B;" id="courseEnrollmentTrend"><i class="fas fa-minus"></i> 0%</div>
+              <div style="font-size:20px; font-weight:700; color:#0A1628;">{{ number_format($stats['active_enrollments']) }}</div>
+              <div style="font-size:12px; color:#F59E0B;"><i class="fas fa-minus"></i> {{ $stats['active_enrollments'] > 0 ? rand(2,7) : 0 }}%</div>
             </div>
             <div style="background:#F8FAFC; border-radius:12px; padding:14px 16px; border:1px solid #F1F5F9;">
               <div style="font-size:12px; color:#94A3B8;">Collection Rate</div>
-              <div style="font-size:20px; font-weight:700; color:#0A1628;" id="collectionRate">0%</div>
-              <div style="font-size:12px; color:#10B981;" id="collectionRateTrend"><i class="fas fa-arrow-up"></i> 0%</div>
+              <div style="font-size:20px; font-weight:700; color:#0A1628;">{{ $collectionRate ?? 0 }}%</div>
+              <div style="font-size:12px; color:#10B981;"><i class="fas fa-arrow-up"></i> {{ $collectionRate > 0 ? rand(2,8) : 0 }}%</div>
             </div>
           </div>
         </div>
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-book" style="color:#6D4AFF;"></i> Course Overview</h3><a href="{{ url('/admin/courses') }}">All</a></div>
           <div class="course-grid" id="courseOverview">
-            <div style="text-align:center; padding:20px; color:#94A3B8; grid-column:1/-1;"><div class="loading-spinner"></div> Loading courses...</div>
+            @forelse($topCourses as $course)
+            <div class="course-item" onclick="window.location.href='{{ url('/admin/courses/' . $course->id) }}'">
+              <div class="name">{{ $course->name ?? 'Untitled' }}</div>
+              <div class="stats">
+                <span><strong>{{ $course->enrollments_count ?? 0 }}</strong> Students</span>
+                <span><strong>PKR {{ number_format(rand(500000, 3000000)) }}</strong> Revenue</span>
+              </div>
+            </div>
+            @empty
+            <div style="text-align:center; padding:20px; color:#94A3B8; grid-column:1/-1;">No courses found</div>
+            @endforelse
           </div>
         </div>
       </div>
 
-      <!-- Quick Actions -->
+      <!-- ─── Quick Actions ─── -->
       <div class="card" style="margin-bottom:28px;">
         <div class="card-header"><h3><i class="fas fa-bolt" style="color:#F59E0B;"></i> Quick Actions</h3></div>
         <div class="quick-actions">
@@ -1068,25 +1076,25 @@
         </div>
       </div>
 
-      <!-- Row 4: System Status + Upcoming Tasks -->
+      <!-- ─── ROW 4: System Status + Upcoming Tasks ─── -->
       <div class="row-grid">
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-server" style="color:#14B8A6;"></i> System Status</h3></div>
           <div class="status-grid" id="systemStatus">
             <div class="status-item" onclick="window.location.href='{{ url('/admin/certificates') }}'">
-              <div class="num" id="statusCertificates">0</div>
+              <div class="num" id="statusCertificates">{{ number_format($stats['total_certificates']) }}</div>
               <div class="label">Total Certificates</div>
             </div>
             <div class="status-item" onclick="window.location.href='{{ url('/admin/student-cards') }}'">
-              <div class="num" id="statusCards">0</div>
+              <div class="num" id="statusCards">{{ number_format($stats['total_cards']) }}</div>
               <div class="label">Student Cards</div>
             </div>
             <div class="status-item" onclick="window.location.href='{{ url('/admin/enquiries') }}'">
-              <div class="num" id="statusEnquiries">0</div>
+              <div class="num" id="statusEnquiries">{{ number_format($stats['total_enquiries']) }}</div>
               <div class="label">Website Enquiries</div>
             </div>
             <div class="status-item">
-              <div class="num" id="statusUsers">0</div>
+              <div class="num" id="statusUsers">{{ rand(5, 20) }}</div>
               <div class="label">Active Users</div>
             </div>
           </div>
@@ -1094,30 +1102,46 @@
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-tasks" style="color:#EF4444;"></i> Upcoming Tasks</h3><a href="{{ url('/admin/reports/remaining') }}">View all</a></div>
           <div style="display:flex; flex-direction:column; gap:8px;" id="upcomingTasks">
-            <div style="text-align:center; padding:20px; color:#94A3B8;"><div class="loading-spinner"></div> Loading tasks...</div>
+            @forelse($upcomingTasks as $task)
+            <div class="task-item" onclick="window.location.href='{{ $task['link'] }}'" style="border-left-color: {{ $task['color'] }};">
+              <div class="task-left">
+                <i class="fas {{ $task['icon'] }}" style="color:{{ $task['color'] }};"></i>
+                <span>{{ $task['text'] }}</span>
+              </div>
+              <div class="task-right">{{ $task['detail'] }}</div>
+            </div>
+            @empty
+            <div style="text-align:center; padding:20px; color:#94A3B8;">No pending tasks</div>
+            @endforelse
           </div>
         </div>
       </div>
 
-      <!-- Recent Activity -->
+      <!-- ─── Recent Activity ─── -->
       <div class="card">
         <div class="card-header"><h3><i class="fas fa-history" style="color:#6D4AFF;"></i> Recent Activity</h3><a href="#">View all</a></div>
         <div class="timeline" id="recentActivity">
-          <div style="text-align:center; padding:20px; color:#94A3B8;"><div class="loading-spinner"></div> Loading activity...</div>
+          @forelse($recentActivities as $activity)
+          <div class="timeline-item">
+            <div class="timeline-icon" style="background:{{ $activity['color'] }}15; color:{{ $activity['color'] }};">
+              <i class="fas {{ $activity['icon'] }}"></i>
+            </div>
+            <div class="timeline-content">{!! $activity['text'] !!}</div>
+            <div class="timeline-time">{{ $activity['time'] }}</div>
+          </div>
+          @empty
+          <div style="text-align:center; padding:20px; color:#94A3B8;">No recent activity</div>
+          @endforelse
         </div>
       </div>
 
     </div> <!-- dashboard-content -->
   </div> <!-- main -->
 
-  <!-- Toast -->
+  <!-- ─── TOAST ─── -->
   <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">Action completed</span></div>
 
   <script>
-    // ============================================
-    // DASHBOARD DYNAMIC DATA
-    // ============================================
-
     // ─── CSRF Token ───
     function getCSRFToken() {
       return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -1130,256 +1154,6 @@
       toast.classList.add('show');
       clearTimeout(toast._timer);
       toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
-    }
-
-    // ─── API Request ───
-    async function apiRequest(url) {
-      try {
-        const response = await fetch(url, {
-          headers: {
-            'X-CSRF-TOKEN': getCSRFToken(),
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-        if (!response.ok) throw new Error('Request failed');
-        return await response.json();
-      } catch (error) {
-        console.error('API Error:', error);
-        return null;
-      }
-    }
-
-    // ─── Load Dashboard Data ───
-    async function loadDashboardData() {
-      try {
-        // Load all data in parallel
-        const [students, teachers, courses, enrollments, payments, certificates, cards, enquiries] = await Promise.all([
-          apiRequest('/admin/students?ajax=1'),
-          apiRequest('/admin/teachers?ajax=1'),
-          apiRequest('/admin/courses?ajax=1'),
-          apiRequest('/admin/enrollments?ajax=1'),
-          apiRequest('/admin/fee-payments?ajax=1'),
-          apiRequest('/admin/certificates?ajax=1'),
-          apiRequest('/admin/student-cards?ajax=1'),
-          apiRequest('/admin/enquiries?ajax=1')
-        ]);
-
-        // Update Stats
-        const studentCount = students?.data?.length || 0;
-        const teacherCount = teachers?.data?.length || 0;
-        const courseCount = courses?.data?.length || 0;
-        const enrollmentCount = enrollments?.data?.length || 0;
-        const paymentData = payments?.data || [];
-        const totalRevenue = paymentData.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-        const certificateCount = certificates?.data?.length || 0;
-        const cardCount = cards?.data?.length || 0;
-        const enquiryCount = enquiries?.data?.length || 0;
-
-        document.getElementById('statStudents').textContent = studentCount.toLocaleString();
-        document.getElementById('statTeachers').textContent = teacherCount.toLocaleString();
-        document.getElementById('statCourses').textContent = courseCount.toLocaleString();
-        document.getElementById('statEnrollments').textContent = enrollmentCount.toLocaleString();
-        document.getElementById('statRevenue').textContent = 'PKR ' + totalRevenue.toLocaleString();
-        document.getElementById('statRemaining').textContent = 'PKR ' + (totalRevenue * 0.25).toLocaleString();
-
-        // Update trends (mock data for demo)
-        document.getElementById('studentTrend').textContent = (Math.random() * 15 + 5).toFixed(1);
-        document.getElementById('teacherTrend').textContent = (Math.random() * 10 + 2).toFixed(1);
-        document.getElementById('courseTrend').textContent = (Math.random() * 8 + 3).toFixed(1);
-        document.getElementById('enrollmentTrend').textContent = (Math.random() * 12 + 4).toFixed(1);
-        document.getElementById('revenueTrend').textContent = (Math.random() * 20 + 5).toFixed(1);
-        document.getElementById('remainingTrend').textContent = (Math.random() * 5 + 1).toFixed(1);
-
-        // Quick Analytics
-        const monthlyRevenue = totalRevenue / 12;
-        document.getElementById('monthlyRevenue').textContent = 'PKR ' + monthlyRevenue.toLocaleString();
-        document.getElementById('monthlyRevenueTrend').innerHTML = '<i class="fas fa-arrow-up"></i> ' + (Math.random() * 15 + 5).toFixed(1) + '%';
-        document.getElementById('studentGrowth').textContent = '+' + Math.floor(Math.random() * 50 + 10);
-        document.getElementById('studentGrowthTrend').innerHTML = '<i class="fas fa-arrow-up"></i> ' + (Math.random() * 10 + 3).toFixed(1) + '%';
-        document.getElementById('courseEnrollments').textContent = enrollmentCount.toLocaleString();
-        document.getElementById('courseEnrollmentTrend').innerHTML = '<i class="fas fa-minus"></i> ' + (Math.random() * 5 + 1).toFixed(1) + '%';
-        const collectionRate = studentCount > 0 ? Math.min(100, (totalRevenue / (studentCount * 15000)) * 100) : 0;
-        document.getElementById('collectionRate').textContent = collectionRate.toFixed(0) + '%';
-        document.getElementById('collectionRateTrend').innerHTML = '<i class="fas fa-arrow-up"></i> ' + (Math.random() * 8 + 2).toFixed(1) + '%';
-
-        // System Status
-        document.getElementById('statusCertificates').textContent = certificateCount.toLocaleString();
-        document.getElementById('statusCards').textContent = cardCount.toLocaleString();
-        document.getElementById('statusEnquiries').textContent = enquiryCount.toLocaleString();
-        document.getElementById('statusUsers').textContent = Math.floor(Math.random() * 20 + 5);
-
-        // Notifications count
-        document.getElementById('notifCount').textContent = Math.min(9, Math.floor(Math.random() * 10 + 1));
-
-        // Render Recent Students
-        renderRecentStudents(students?.data || []);
-
-        // Render Recent Payments
-        renderRecentPayments(paymentData);
-
-        // Render Course Overview
-        renderCourseOverview(courses?.data || []);
-
-        // Render Upcoming Tasks
-        renderUpcomingTasks();
-
-        // Render Recent Activity
-        renderRecentActivity();
-
-      } catch (error) {
-        console.error('Error loading dashboard:', error);
-        showToast('⚠️ Error loading dashboard data');
-      }
-    }
-
-    // ─── Render Recent Students ───
-    function renderRecentStudents(students) {
-      const container = document.getElementById('recentStudents');
-      const recent = students.slice(0, 5);
-      if (recent.length === 0) {
-        container.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#94A3B8;">No students found</td></tr>';
-        return;
-      }
-      const colors = ['#6D4AFF', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
-      container.innerHTML = recent.map((s, i) => {
-        const initials = (s.name || 'S').split(' ').map(w => w[0]).join('').toUpperCase();
-        const color = colors[i % colors.length];
-        const date = s.created_at ? new Date(s.created_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : 'N/A';
-        const statusClass = s.status === 'active' ? 'active' : s.status === 'pending' ? 'pending' : 'inactive';
-        return `
-          <tr>
-            <td><div class="avatar-sm" style="background:${color}">${initials}</div></td>
-            <td>${s.name || 'N/A'}</td>
-            <td>${s.student_id || 'N/A'}</td>
-            <td>${s.phone || 'N/A'}</td>
-            <td>${date}</td>
-            <td><span class="status-badge ${statusClass}">${(s.status || 'inactive').charAt(0).toUpperCase() + (s.status || 'inactive').slice(1)}</span></td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // ─── Render Recent Payments ───
-    function renderRecentPayments(payments) {
-      const container = document.getElementById('recentPayments');
-      const recent = payments.slice(0, 5);
-      if (recent.length === 0) {
-        container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94A3B8;">No payments found</td></tr>';
-        return;
-      }
-      container.innerHTML = recent.map(p => {
-        const studentName = p.enrollment?.student?.name || 'N/A';
-        const date = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : 'N/A';
-        return `
-          <tr>
-            <td><strong>${p.receipt_no || 'REC-0000'}</strong></td>
-            <td>${studentName}</td>
-            <td>PKR ${parseFloat(p.amount || 0).toLocaleString()}</td>
-            <td>${date}</td>
-            <td>${p.payment_method || 'N/A'}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // ─── Render Course Overview ───
-    function renderCourseOverview(courses) {
-      const container = document.getElementById('courseOverview');
-      const recent = courses.slice(0, 4);
-      if (recent.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#94A3B8; grid-column:1/-1;">No courses found</div>';
-        return;
-      }
-      container.innerHTML = recent.map(c => {
-        const revenue = Math.floor(Math.random() * 3000000 + 500000);
-        const students = Math.floor(Math.random() * 100 + 10);
-        return `
-          <div class="course-item" onclick="window.location.href='/admin/courses/${c.id}'">
-            <div class="name">${c.title || 'Untitled Course'}</div>
-            <div class="stats">
-              <span><strong>${students}</strong> Students</span>
-              <span><strong>PKR ${revenue.toLocaleString()}</strong> Revenue</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // ─── Render Upcoming Tasks ───
-    function renderUpcomingTasks() {
-      const container = document.getElementById('upcomingTasks');
-      const tasks = [
-        { icon: 'fa-dollar-sign', color: '#EF4444', text: 'Pending Fees', detail: 'Due Today', link: '{{ url("/admin/reports/remaining") }}' },
-        { icon: 'fa-certificate', color: '#F59E0B', text: 'Certificates to Generate', detail: 'Pending', link: '{{ url("/admin/certificates/create") }}' },
-        { icon: 'fa-envelope', color: '#6D4AFF', text: 'New Enquiries', detail: 'Unread', link: '{{ url("/admin/enquiries") }}' },
-        { icon: 'fa-phone', color: '#10B981', text: 'Follow Ups', detail: 'Today', link: '#' }
-      ];
-      container.innerHTML = tasks.map(t => `
-        <div class="task-item" onclick="window.location.href='${t.link}'" style="border-left-color: ${t.color};">
-          <div class="task-left">
-            <i class="fas ${t.icon}" style="color:${t.color};"></i>
-            <span>${t.text}</span>
-          </div>
-          <div class="task-right">${t.detail}</div>
-        </div>
-      `).join('');
-    }
-
-    // ─── Render Recent Activity ───
-    function renderRecentActivity() {
-      const container = document.getElementById('recentActivity');
-      const activities = [
-        { icon: 'fa-user-plus', text: '<strong>Ali Raza</strong> enrolled in Web Development', time: '2h ago' },
-        { icon: 'fa-dollar-sign', text: 'Fee payment received from <strong>Fatima Noor</strong> (PKR 8,500)', time: '5h ago' },
-        { icon: 'fa-certificate', text: 'Certificate issued to <strong>Usman Ahmed</strong>', time: '1d ago' },
-        { icon: 'fa-id-card', text: 'Student card printed for <strong>Sara Khan</strong>', time: '1d ago' },
-        { icon: 'fa-user-plus', text: 'New student <strong>Ahmed Khan</strong> registered', time: '2d ago' }
-      ];
-      container.innerHTML = activities.map(a => `
-        <div class="timeline-item">
-          <div class="timeline-icon"><i class="fas ${a.icon}"></i></div>
-          <div class="timeline-content">${a.text}</div>
-          <div class="timeline-time">${a.time}</div>
-        </div>
-      `).join('');
-    }
-
-    // ─── Filter Dashboard ───
-    function filterDashboard() {
-      const search = document.getElementById('globalSearch').value.toLowerCase();
-      if (search.length > 2) {
-        showToast('🔍 Searching for "' + search + '"...');
-      }
-    }
-
-    // ─── Toggle Notifications ───
-    function toggleNotifications() {
-      const panel = document.getElementById('notifPanel');
-      if (!panel) {
-        const notifBtn = document.getElementById('notifBtn');
-        const panel = document.createElement('div');
-        panel.className = 'notif-panel';
-        panel.id = 'notifPanel';
-        panel.innerHTML = `
-          <div style="padding:12px 20px; font-weight:600; border-bottom:1px solid #F1F5F9;">Notifications</div>
-          <div class="notif-item"><i class="fas fa-user-plus" style="color:#6D4AFF;"></i> Ali Raza enrolled in Web Dev</div>
-          <div class="notif-item"><i class="fas fa-dollar-sign" style="color:#10B981;"></i> Fee payment received PKR 25,000</div>
-          <div class="notif-item"><i class="fas fa-certificate" style="color:#F59E0B;"></i> Certificate issued for Sara Khan</div>
-          <div class="notif-item"><i class="fas fa-id-card" style="color:#3B82F6;"></i> Student card printed for Usman</div>
-          <div style="padding:8px 20px; text-align:center; border-top:1px solid #F1F5F9;">
-            <a href="#" style="color:#6D4AFF; text-decoration:none; font-size:13px; font-weight:500;">View all notifications</a>
-          </div>
-        `;
-        notifBtn.parentNode.appendChild(panel);
-      }
-      document.getElementById('notifPanel').classList.toggle('open');
-      document.getElementById('profileDropdown').classList.remove('open');
-    }
-
-    // ─── Toggle Theme ───
-    function toggleTheme() {
-      showToast('🌙 Dark mode coming soon!');
     }
 
     // ─── Sidebar Toggle ───
@@ -1400,7 +1174,6 @@
       if (notifPanel) notifPanel.classList.remove('open');
     });
 
-    // ─── Click outside ───
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.profile-dropdown-wrap')) {
         document.getElementById('profileDropdown').classList.remove('open');
@@ -1411,6 +1184,43 @@
       }
     });
 
+    // ─── Toggle Notifications ───
+    function toggleNotifications() {
+      const panel = document.getElementById('notifPanel');
+      if (!panel) {
+        const notifBtn = document.getElementById('notifBtn');
+        const panel = document.createElement('div');
+        panel.className = 'notif-panel';
+        panel.id = 'notifPanel';
+        panel.innerHTML = `
+          <div style="padding:12px 20px; font-weight:600; border-bottom:1px solid #F1F5F9;">Notifications</div>
+          <div class="notif-item"><i class="fas fa-user-plus" style="color:#E53935;"></i> Ali Raza enrolled in Web Dev</div>
+          <div class="notif-item"><i class="fas fa-dollar-sign" style="color:#FFC107;"></i> Fee payment received PKR 25,000</div>
+          <div class="notif-item"><i class="fas fa-certificate" style="color:#E53935;"></i> Certificate issued for Sara Khan</div>
+          <div class="notif-item"><i class="fas fa-id-card" style="color:#0B3C6D;"></i> Student card printed for Usman</div>
+          <div style="padding:8px 20px; text-align:center; border-top:1px solid #F1F5F9;">
+            <a href="#" style="color:#E53935; text-decoration:none; font-size:13px; font-weight:500;">View all notifications</a>
+          </div>
+        `;
+        notifBtn.parentNode.appendChild(panel);
+      }
+      document.getElementById('notifPanel').classList.toggle('open');
+      document.getElementById('profileDropdown').classList.remove('open');
+    }
+
+    // ─── Toggle Theme ───
+    function toggleTheme() {
+      showToast('🌙 Dark mode coming soon!');
+    }
+
+    // ─── Filter Dashboard ───
+    function filterDashboard() {
+      const search = document.getElementById('globalSearch').value.toLowerCase();
+      if (search.length > 2) {
+        showToast('🔍 Searching for "' + search + '"...');
+      }
+    }
+
     // ─── Live Clock ───
     function updateClock() {
       const now = new Date();
@@ -1420,7 +1230,6 @@
 
     // ─── Init ───
     document.addEventListener('DOMContentLoaded', function() {
-      loadDashboardData();
       updateClock();
     });
   </script>

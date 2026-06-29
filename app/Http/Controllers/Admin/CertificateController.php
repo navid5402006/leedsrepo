@@ -322,7 +322,7 @@ public function destroy($id)
     /**
      * Show certificate preview.
      */
-    public function show($id)
+    public function edit($id)
     {
         $certificate = Certificate::with(['enrollment.student', 'enrollment.course'])->findOrFail($id);
         
