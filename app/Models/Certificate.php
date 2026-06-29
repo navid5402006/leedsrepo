@@ -94,66 +94,38 @@ class Certificate extends Model
      * Format: LA-CERT-YYYY-XXXX (e.g., LA-CERT-2026-0001)
      */
     public static function generateCertificateNumber(): string
-    {
-        $year = date('Y');
-        $prefix = "LA-CERT-{$year}-";
+{
+    $prefix = "CRT";
+    $digits = 4;
+    $maxAttempts = 50;
+    
+    for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+        // Generate random number between 1000 and 9999 (ensures 4 digits, no leading zeros)
+        $randomNumber = random_int(1000, 9999);
+        $certificateNo = $prefix . $randomNumber;
         
-        // Get ALL certificates (including soft deleted) for this year
-        $allCertificates = self::withTrashed()
-            ->where('certificate_no', 'LIKE', $prefix . '%')
-            ->orderBy('certificate_no', 'desc')
-            ->get();
+        // Check if this number is already used (including soft deleted)
+        $exists = self::withTrashed()
+            ->where('certificate_no', $certificateNo)
+            ->exists();
         
-        if ($allCertificates->isEmpty()) {
-            // No certificates exist for this year, start from 1
-            return $prefix . '0001';
+        if (!$exists) {
+            return $certificateNo;
         }
-        
-        // Get all existing numbers
-        $existingNumbers = $allCertificates->map(function ($cert) {
-            return (int) substr($cert->certificate_no, -4);
-        })->sort()->values();
-        
-        // Find the first available number (including gaps)
-        $expectedNumber = 1;
-        foreach ($existingNumbers as $existingNumber) {
-            if ($existingNumber > $expectedNumber) {
-                // Found a gap
-                break;
-            }
-            $expectedNumber++;
-        }
-        
-        // Pad with zeros to 4 digits
-        $paddedNumber = str_pad($expectedNumber, 4, '0', STR_PAD_LEFT);
-        
-        return $prefix . $paddedNumber;
     }
+    
+    // If we couldn't generate a unique number, use timestamp as fallback
+    $timestamp = now()->format('ymdHis');
+    return "CRT" . $timestamp;
+}
 
-    /**
-     * Generate a unique certificate number with retry logic.
-     */
-    public static function generateUniqueCertificateNumber(int $maxAttempts = 10): string
-    {
-        $attempt = 0;
-        while ($attempt < $maxAttempts) {
-            $attempt++;
-            $certificateNo = self::generateCertificateNumber();
-            
-            // Check if this number is already used (including soft deleted)
-            $exists = self::withTrashed()
-                ->where('certificate_no', $certificateNo)
-                ->exists();
-            
-            if (!$exists) {
-                return $certificateNo;
-            }
-        }
-        
-        // If we couldn't generate a unique number, use timestamp as fallback
-        $timestamp = now()->format('YmdHis');
-        return "LA-CERT-{$timestamp}";
-    }
+/**
+ * Generate a unique certificate number with retry logic.
+ */
+public static function generateUniqueCertificateNumber(int $maxAttempts = 50): string
+{
+    return self::generateCertificateNumber();
+}
 
     /**
      * Alternative method: Find the next available number by finding gaps.
