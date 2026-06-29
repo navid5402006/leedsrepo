@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Courses – Leeds Institute</title>
-  <meta name="description" content="Explore our range of academic programs at Leeds Institute including FSc Pre-Medical, Pre-Engineering, ICS, Matric, and Computer Diploma." />
+  <title>Courses – {{ $settings['institute']['name'] ?? 'Leeds Institute' }}</title>
+  <meta name="description" content="Explore our range of academic programs at {{ $settings['institute']['name'] ?? 'Leeds Institute' }} including FSc Pre-Medical, Pre-Engineering, ICS, Matric, and Computer Diploma." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
 
   <style>
-    /* ─── ROOT TOKENS (same as home) ─── */
+    /* ─── ROOT TOKENS ─── */
     :root {
       --navy: #0B3C6D;
       --navy2: #07284a;
@@ -114,7 +114,7 @@
     section { padding: 90px 0; }
 
     /* ═══════════════════════════════════════════════════
-       HEADER (same as home)
+       HEADER (Dynamic)
     ═══════════════════════════════════════════════════ */
     #header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
@@ -176,7 +176,7 @@
       background: var(--white); border-radius: 2px; transition: var(--transition);
     }
 
-    /* ─── MOBILE SIDEBAR NAV ─── */
+    /* ─── MOBILE SIDEBAR NAV (Dynamic) ─── */
     .mobile-overlay {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,.5); z-index: 999; opacity: 0;
@@ -359,16 +359,6 @@
       color: var(--red);
       font-size: 1rem;
     }
-    .course-card .card-footer {
-      padding: 14px 24px 20px;
-      border-top: 1px solid var(--gray-100);
-    }
-    .course-card .card-footer .btn {
-      width: 100%;
-      justify-content: center;
-      padding: 10px;
-      font-size: .82rem;
-    }
 
     /* ─── SOCIAL MEDIA ICONS IN FOOTER ─── */
     .footer-social {
@@ -377,9 +367,7 @@
       flex-wrap: wrap;
     }
     .social-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 38px; height: 38px; border-radius: 10px;
       background: rgba(255,255,255,.08);
       color: rgba(255,255,255,.7);
       display: flex;
@@ -401,7 +389,7 @@
     }
 
     /* ═══════════════════════════════════════════════════
-       FOOTER (same as home)
+       FOOTER (Dynamic)
     ═══════════════════════════════════════════════════ */
     #footer {
       background: var(--navy2);
@@ -503,7 +491,7 @@
     #back-top:hover { background: var(--yellow); color: var(--navy); transform: translateY(-3px); }
 
     /* ═══════════════════════════════════════════════════
-       RESPONSIVE — MOBILE (same as home)
+       RESPONSIVE — MOBILE
     ═══════════════════════════════════════════════════ */
     @media (max-width: 768px) {
       section { padding: 40px 0; }
@@ -568,13 +556,6 @@
       .course-card .card-body .info-row .value.fee {
         font-size: .8rem;
       }
-      .course-card .card-footer {
-        padding: 10px 16px 14px;
-      }
-      .course-card .card-footer .btn {
-        padding: 8px;
-        font-size: .7rem;
-      }
 
       /* Footer */
       .footer-top { padding: 20px 0 12px; }
@@ -634,49 +615,49 @@
 <div class="mobile-overlay" id="mobileOverlay"></div>
 
 <!-- ═══════════════════════════════════════════════════
-   MOBILE SIDEBAR NAV
+   MOBILE SIDEBAR NAV (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-header">
     <div class="mobile-nav-brand">
       <div class="logo-mark-sm">LI</div>
-      <span>Leeds Institute</span>
+      <span>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</span>
     </div>
     <button class="mobile-nav-close" id="navClose"><i class="fas fa-times"></i></button>
   </div>
-  <a href="index.html" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
-  <a href="about.html" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
-  <a href="courses.html" onclick="closeNav()" class="active"><i class="fas fa-book-open"></i> Courses</a>
-  <a href="admissions.html" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
-  <a href="faq.html" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
-  <a href="teachers.html" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
-  <a href="gallery.html" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
-  <a href="contact.html" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('home') }}" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
+  <a href="{{ route('aboutus') }}" onclick="closeNav()"><i class="fas fa-info-circle"></i> About</a>
+  <a href="{{ route('courses') }}" onclick="closeNav()" class="active"><i class="fas fa-book-open"></i> Courses</a>
+  <a href="{{ route('admissions') }}" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
+  <a href="{{ route('faq') }}" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
+  <a href="{{ route('teachers') }}" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
+  <a href="{{ route('gallery') }}" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
+  <a href="{{ route('contact') }}" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-   HEADER
+   HEADER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <header id="header">
   <div class="container">
     <div class="nav-inner">
-      <a href="index.html" class="logo">
+      <a href="{{ route('home') }}" class="logo">
         <div class="logo-mark">LI</div>
         <div class="logo-text">
-          <strong>Leeds Institute</strong>
-          <span>Quality Education Since 2005</span>
+          <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+          <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
         </div>
       </a>
       <nav>
         <ul class="nav-list">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="courses.html" class="active">Courses</a></li>
-          <li><a href="admissions.html">Admissions</a></li>
-          <li><a href="faq.html">FAQ</a></li>
-          <li><a href="teachers.html">Teachers</a></li>
-          <li><a href="gallery.html">Gallery</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="{{ route('home') }}">Home</a></li>
+          <li><a href="{{ route('aboutus') }}">About</a></li>
+          <li><a href="{{ route('courses') }}" class="active">Courses</a></li>
+          <li><a href="{{ route('admissions') }}">Admissions</a></li>
+          <li><a href="{{ route('faq') }}">FAQ</a></li>
+          <li><a href="{{ route('teachers') }}">Teachers</a></li>
+          <li><a href="{{ route('gallery') }}">Gallery</a></li>
+          <li><a href="{{ route('contact') }}">Contact</a></li>
         </ul>
       </nav>
       <div class="nav-actions">
@@ -705,252 +686,126 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   COURSES LIST
+   COURSES LIST (Dynamic from Database - No Enroll Button)
 ═══════════════════════════════════════════════════ -->
 <section style="padding-top:20px;">
   <div class="container">
     <div class="courses-grid">
       
-      <!-- Course 1: FSc Pre-Medical -->
-      <div class="course-card" data-aos="fade-up" data-aos-delay="0">
-        <div class="card-header">
-          <div class="icon"><i class="fas fa-flask"></i></div>
-          <h3>FSc Pre-Medical</h3>
-          <span class="badge">Science</span>
+      @forelse($courses as $course)
+      <div class="course-card" data-aos="fade-up" data-aos-delay="{{ $loop->index * 80 }}">
+        <div class="card-header" style="background:linear-gradient(135deg, {{ $loop->index % 3 == 0 ? '#0B3C6D,#1565a0' : ($loop->index % 3 == 1 ? '#1a1a2e,#16213e' : '#065f46,#059669') }});">
+          <div class="icon"><i class="fas {{ $course->icon ?? 'fa-graduation-cap' }}"></i></div>
+          <h3>{{ $course->name }}</h3>
+          <span class="badge">{{ $course->category ?? 'Program' }}</span>
         </div>
         <div class="card-body">
           <div class="info-row">
             <i class="fas fa-clock"></i>
             <span class="label">Duration</span>
-            <span class="value">2 Years</span>
+            <span class="value">{{ $course->duration ?? 'N/A' }}</span>
           </div>
           <div class="info-row">
             <i class="fas fa-user-tie"></i>
             <span class="label">Instructor</span>
-            <span class="value">Prof. Ahmed Raza</span>
+            <span class="value">{{ $course->teacher->name ?? 'Staff' }}</span>
           </div>
           <div class="info-row">
             <i class="fas fa-money-bill-wave"></i>
             <span class="label">Fee</span>
-            <span class="value fee">Rs. 8,000/mo</span>
+            <span class="value fee">Rs. {{ number_format($course->fee ?? 0, 0) }}/mo</span>
           </div>
         </div>
-        <div class="card-footer">
-          <a href="contact.html" class="btn btn-primary">Enroll Now</a>
-        </div>
+        <!-- Enroll Now button REMOVED as requested -->
       </div>
-
-      <!-- Course 2: FSc Pre-Engineering -->
-      <div class="course-card" data-aos="fade-up" data-aos-delay="80">
-        <div class="card-header" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
-          <div class="icon"><i class="fas fa-calculator"></i></div>
-          <h3>FSc Pre-Engineering</h3>
-          <span class="badge">Engineering</span>
-        </div>
-        <div class="card-body">
-          <div class="info-row">
-            <i class="fas fa-clock"></i>
-            <span class="label">Duration</span>
-            <span class="value">2 Years</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-user-tie"></i>
-            <span class="label">Instructor</span>
-            <span class="value">Dr. Sana Malik</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="label">Fee</span>
-            <span class="value fee">Rs. 7,500/mo</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <a href="contact.html" class="btn btn-primary">Enroll Now</a>
-        </div>
+      @empty
+      <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--gray-400);">
+        <i class="fas fa-book-open" style="font-size:3rem; display:block; margin-bottom:16px; opacity:0.3;"></i>
+        <p>No courses available at the moment. Please check back later.</p>
       </div>
-
-      <!-- Course 3: ICS / I.Com -->
-      <div class="course-card" data-aos="fade-up" data-aos-delay="160">
-        <div class="card-header" style="background:linear-gradient(135deg,#065f46,#059669);">
-          <div class="icon"><i class="fas fa-chart-line"></i></div>
-          <h3>ICS / I.Com</h3>
-          <span class="badge">Commerce</span>
-        </div>
-        <div class="card-body">
-          <div class="info-row">
-            <i class="fas fa-clock"></i>
-            <span class="label">Duration</span>
-            <span class="value">2 Years</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-user-tie"></i>
-            <span class="label">Instructor</span>
-            <span class="value">Mr. Usman Khan</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="label">Fee</span>
-            <span class="value fee">Rs. 6,500/mo</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <a href="contact.html" class="btn btn-primary">Enroll Now</a>
-        </div>
-      </div>
-
-      <!-- Course 4: Matric (Science & Arts) -->
-      <div class="course-card" data-aos="fade-up" data-aos-delay="0">
-        <div class="card-header" style="background:linear-gradient(135deg,#7c2d12,#dc2626);">
-          <div class="icon"><i class="fas fa-book"></i></div>
-          <h3>Matric (Science & Arts)</h3>
-          <span class="badge">Matriculation</span>
-        </div>
-        <div class="card-body">
-          <div class="info-row">
-            <i class="fas fa-clock"></i>
-            <span class="label">Duration</span>
-            <span class="value">2 Years</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-user-tie"></i>
-            <span class="label">Instructor</span>
-            <span class="value">Ms. Fatima Noor</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="label">Fee</span>
-            <span class="value fee">Rs. 5,000/mo</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <a href="contact.html" class="btn btn-primary">Enroll Now</a>
-        </div>
-      </div>
-
-      <!-- Course 5: Computer Diploma -->
-      <div class="course-card" data-aos="fade-up" data-aos-delay="80">
-        <div class="card-header" style="background:linear-gradient(135deg,#312e81,#4f46e5);">
-          <div class="icon"><i class="fas fa-laptop-code"></i></div>
-          <h3>Computer Diploma</h3>
-          <span class="badge">IT</span>
-        </div>
-        <div class="card-body">
-          <div class="info-row">
-            <i class="fas fa-clock"></i>
-            <span class="label">Duration</span>
-            <span class="value">6 Months</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-user-tie"></i>
-            <span class="label">Instructor</span>
-            <span class="value">Mr. Usman Khan</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="label">Fee</span>
-            <span class="value fee">Rs. 4,500/mo</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <a href="contact.html" class="btn btn-primary">Enroll Now</a>
-        </div>
-      </div>
-
-      <!-- Course 6: Spoken English -->
-      <div class="course-card" data-aos="fade-up" data-aos-delay="160">
-        <div class="card-header" style="background:linear-gradient(135deg,#164e63,#0891b2);">
-          <div class="icon"><i class="fas fa-language"></i></div>
-          <h3>Spoken English Course</h3>
-          <span class="badge">English</span>
-        </div>
-        <div class="card-body">
-          <div class="info-row">
-            <i class="fas fa-clock"></i>
-            <span class="label">Duration</span>
-            <span class="value">3 Months</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-user-tie"></i>
-            <span class="label">Instructor</span>
-            <span class="value">Ms. Fatima Noor</span>
-          </div>
-          <div class="info-row">
-            <i class="fas fa-money-bill-wave"></i>
-            <span class="label">Fee</span>
-            <span class="value fee">Rs. 3,500/mo</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <a href="contact.html" class="btn btn-primary">Enroll Now</a>
-        </div>
-      </div>
+      @endforelse
 
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   FOOTER
+   FOOTER (Dynamic)
 ═══════════════════════════════════════════════════ -->
 <footer id="footer">
   <div class="footer-top">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="{{ route('home') }}" class="logo">
             <div class="logo-mark">LI</div>
             <div class="logo-text">
-              <strong>Leeds Institute</strong>
-              <span>Quality Education Since 2005</span>
+              <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+              <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
             </div>
           </a>
-          <p>Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.</p>
+          <p>{{ $settings['institute']['about_description'] ?? 'Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.' }}</p>
           <div class="footer-social">
-            <a href="#" class="social-btn" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-btn" title="Twitter" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="social-btn" title="Instagram" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-btn" title="YouTube" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="social-btn" title="WhatsApp" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-            <a href="#" class="social-btn" title="LinkedIn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @if($settings['social']['facebook'])
+              <a href="{{ $settings['social']['facebook'] }}" class="social-btn" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            @endif
+            @if($settings['social']['twitter'])
+              <a href="{{ $settings['social']['twitter'] }}" class="social-btn" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+            @endif
+            @if($settings['social']['instagram'])
+              <a href="{{ $settings['social']['instagram'] }}" class="social-btn" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            @endif
+            @if($settings['social']['youtube'])
+              <a href="{{ $settings['social']['youtube'] }}" class="social-btn" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+            @endif
+            @if($settings['social']['tiktok'])
+              <a href="{{ $settings['social']['tiktok'] }}" class="social-btn" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            @endif
+            @if($settings['social']['linkedin'])
+              <a href="{{ $settings['social']['linkedin'] }}" class="social-btn" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            @endif
           </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
-            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
-            <li><a href="teachers.html"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
-            <li><a href="gallery.html"><i class="fas fa-chevron-right"></i> Gallery</a></li>
-            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+            <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="{{ route('aboutus') }}"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="{{ route('teachers') }}"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
+            <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> Gallery</a></li>
+            <li><a href="{{ route('contact') }}"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Programs</h4>
           <ul>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Medical</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Engineering</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> ICS / I.Com</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Matric Science</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Computer Diploma</a></li>
+            @foreach($allCourses->take(5) as $course)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> {{ $course->name }}</a></li>
+            @endforeach
+            @if($allCourses->count() > 5)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> View All</a></li>
+            @endif
           </ul>
         </div>
         <div class="footer-col">
           <h4>Admissions</h4>
           <ul>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Contact Info</h4>
           <ul class="footer-contact">
-            <li><i class="fas fa-map-marker-alt"></i> Main Road, City, Pakistan</li>
-            <li><i class="fas fa-phone"></i> +92-XXX-XXXXXXX</li>
-            <li><i class="fas fa-envelope"></i> info@leedsinstitute.edu.pk</li>
-            <li><i class="fab fa-whatsapp"></i> +92-XXX-XXXXXXX</li>
+            <li><i class="fas fa-map-marker-alt"></i> {{ $settings['contact']['address'] ?? 'Main Road, City, Pakistan' }}</li>
+            <li><i class="fas fa-phone"></i> {{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}</li>
+            <li><i class="fas fa-envelope"></i> {{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}</li>
+            @if($settings['contact']['whatsapp'])
+              <li><i class="fab fa-whatsapp"></i> {{ $settings['contact']['whatsapp'] }}</li>
+            @endif
             <li><i class="fas fa-clock"></i> Mon–Sat: 8:00 AM – 5:00 PM</li>
           </ul>
         </div>
@@ -960,12 +815,12 @@
   <div class="container">
     <div class="footer-bottom">
       <div style="color:rgba(255,255,255,.45)">
-        &copy; 2025 Leeds Institute. All Rights Reserved.
+        &copy; {{ date('Y') }} {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. All Rights Reserved.
       </div>
       <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Sitemap</a>
+        <a href="{{ route('Terms_Privacy') }}">Privacy Policy</a>
+        <a href="{{ route('Terms_Privacy') }}">Terms & Conditions</a>
+        <a href="{{ route('home') }}">Sitemap</a>
       </div>
     </div>
   </div>
@@ -1016,7 +871,7 @@
   const navLinks = document.querySelectorAll('.nav-list a');
   navLinks.forEach(link => {
     link.classList.remove('active');
-    if (link.getAttribute('href') === 'courses.html') {
+    if (link.getAttribute('href') === '{{ route('courses') }}') {
       link.classList.add('active');
     }
   });

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\EnquiryController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TalentTestController;
+use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\PublicSideController;
 use Illuminate\Support\Facades\Route;
 
@@ -212,6 +213,18 @@ Route::middleware('auth:admin')->group(function () {
         Route::delete('/attempt/{id}/force', [TalentTestController::class, 'forceDeleteAttempt'])->name('attempt.force-delete');
         Route::post('/reset', [TalentTestController::class, 'resetRollNumbers'])->name('reset');
     });
+
+    Route::prefix('admin/gallery')->name('admin.gallery.')->group(function () {
+    Route::get('/', [GalleryController::class, 'index'])->name('index');
+    Route::post('/store', [GalleryController::class, 'store'])->name('store');
+    Route::get('/{id}', [GalleryController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [GalleryController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [GalleryController::class, 'update'])->name('update');
+    Route::delete('/{id}', [GalleryController::class, 'destroy'])->name('destroy');
+    Route::post('/reorder', [GalleryController::class, 'reorder'])->name('reorder');
+    Route::post('/{id}/toggle-status', [GalleryController::class, 'toggleStatus'])->name('toggle-status');
+});
+
 });
 
 // PUBLIC ROUTES (No authentication required)

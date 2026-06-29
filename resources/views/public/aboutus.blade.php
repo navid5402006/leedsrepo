@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>About Us – Leeds Institute</title>
-  <meta name="description" content="Learn about Leeds Institute - our mission, vision, history, and commitment to quality education since 2005." />
+  <title>About Us – {{ $settings['institute']['name'] ?? 'Leeds Institute' }}</title>
+  <meta name="description" content="Learn about {{ $settings['institute']['name'] ?? 'Leeds Institute' }} - our mission, vision, history, and commitment to quality education since 2005." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -261,7 +261,7 @@
       margin-top: 12px;
     }
 
-    /* About Stats */
+    /* About Stats - Dynamic */
     .about-stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -496,7 +496,7 @@
     }
 
     /* ═══════════════════════════════════════════════════
-       FOOTER (same as home)
+       FOOTER (same as home with dynamic courses)
     ═══════════════════════════════════════════════════ */
     #footer {
       background: var(--navy2);
@@ -723,18 +723,18 @@
   <div class="mobile-nav-header">
     <div class="mobile-nav-brand">
       <div class="logo-mark-sm">LI</div>
-      <span>Leeds Institute</span>
+      <span>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</span>
     </div>
     <button class="mobile-nav-close" id="navClose"><i class="fas fa-times"></i></button>
   </div>
-  <a href="index.html" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
-  <a href="about.html" onclick="closeNav()" class="active"><i class="fas fa-info-circle"></i> About</a>
-  <a href="courses.html" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
-  <a href="admissions.html" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
-  <a href="faq.html" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
-  <a href="teachers.html" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
-  <a href="gallery.html" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
-  <a href="contact.html" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
+  <a href="{{ route('home') }}" onclick="closeNav()"><i class="fas fa-home"></i> Home</a>
+  <a href="{{ route('aboutus') }}" onclick="closeNav()" class="active"><i class="fas fa-info-circle"></i> About</a>
+  <a href="{{ route('courses') }}" onclick="closeNav()"><i class="fas fa-book-open"></i> Courses</a>
+  <a href="{{ route('admissions') }}" onclick="closeNav()"><i class="fas fa-clipboard-list"></i> Admissions</a>
+  <a href="{{ route('faq') }}" onclick="closeNav()"><i class="fas fa-question-circle"></i> FAQ</a>
+  <a href="{{ route('teachers') }}" onclick="closeNav()"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
+  <a href="{{ route('gallery') }}" onclick="closeNav()"><i class="fas fa-images"></i> Gallery</a>
+  <a href="{{ route('contact') }}" onclick="closeNav()"><i class="fas fa-phone"></i> Contact</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -743,23 +743,23 @@
 <header id="header">
   <div class="container">
     <div class="nav-inner">
-      <a href="index.html" class="logo">
+      <a href="{{ route('home') }}" class="logo">
         <div class="logo-mark">LI</div>
         <div class="logo-text">
-          <strong>Leeds Institute</strong>
-          <span>Quality Education Since 2005</span>
+          <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+          <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
         </div>
       </a>
       <nav>
         <ul class="nav-list">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html" class="active">About</a></li>
-          <li><a href="courses.html">Courses</a></li>
-          <li><a href="admissions.html">Admissions</a></li>
-          <li><a href="faq.html">FAQ</a></li>
-          <li><a href="teachers.html">Teachers</a></li>
-          <li><a href="gallery.html">Gallery</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="{{ route('home') }}">Home</a></li>
+          <li><a href="{{ route('aboutus') }}" class="active">About</a></li>
+          <li><a href="{{ route('courses') }}">Courses</a></li>
+          <li><a href="{{ route('admissions') }}">Admissions</a></li>
+          <li><a href="{{ route('faq') }}">FAQ</a></li>
+          <li><a href="{{ route('teachers') }}">Teachers</a></li>
+          <li><a href="{{ route('gallery') }}">Gallery</a></li>
+          <li><a href="{{ route('contact') }}">Contact</a></li>
         </ul>
       </nav>
       <div class="nav-actions">
@@ -782,31 +782,31 @@
         <i class="fas fa-info-circle"></i> About Us
       </div>
       <h1 class="hero-title">Building <span>Excellence</span><br>Since 2005</h1>
-      <p>Leeds Institute has been a cornerstone of quality education in the region for over two decades, committed to nurturing future leaders through innovation and integrity.</p>
+      <p>{{ $settings['institute']['about_description'] ?? 'Leeds Institute has been a cornerstone of quality education in the region for over two decades, committed to nurturing future leaders through innovation and integrity.' }}</p>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   ABOUT STATS CARDS
+   ABOUT STATS CARDS (Dynamic from Database)
 ═══════════════════════════════════════════════════ -->
 <section style="padding: 0 0 40px 0;">
   <div class="container">
     <div class="about-stats-grid">
       <div class="about-stat-card" data-aos="fade-up" data-aos-delay="0">
-        <div class="stat-number">20<span class="yellow">+</span></div>
-        <p>Years of Excellence</p>
-      </div>
-      <div class="about-stat-card" data-aos="fade-up" data-aos-delay="60">
-        <div class="stat-number">5,000<span class="yellow">+</span></div>
+        <div class="stat-number">{{ $stats['students'] ?? 0 }}<span class="yellow">+</span></div>
         <p>Students Enrolled</p>
       </div>
-      <div class="about-stat-card" data-aos="fade-up" data-aos-delay="120">
-        <div class="stat-number">100<span class="yellow">+</span></div>
+      <div class="about-stat-card" data-aos="fade-up" data-aos-delay="60">
+        <div class="stat-number">{{ $stats['teachers'] ?? 0 }}<span class="yellow">+</span></div>
         <p>Expert Teachers</p>
       </div>
+      <div class="about-stat-card" data-aos="fade-up" data-aos-delay="120">
+        <div class="stat-number">{{ $stats['courses'] ?? 0 }}<span class="yellow">+</span></div>
+        <p>Courses Offered</p>
+      </div>
       <div class="about-stat-card" data-aos="fade-up" data-aos-delay="180">
-        <div class="stat-number">98<span class="yellow">%</span></div>
+        <div class="stat-number">{{ $stats['success_rate'] ?? 98 }}<span class="yellow">%</span></div>
         <p>Success Rate</p>
       </div>
     </div>
@@ -814,15 +814,15 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   ABOUT CONTENT
+   ABOUT CONTENT (Dynamic from Settings)
 ═══════════════════════════════════════════════════ -->
 <section style="padding-top:0;">
   <div class="container">
     <div class="about-content-grid">
       <div class="about-image-wrap" data-aos="fade-right">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTi6iTao9uzCT0_np_Ql0lj9_3FeGFSddBvDtRCZ0r9fQ&s=10" alt="Leeds Institute Campus" />
+        <img src="{{ $settings['about']['image'] ? asset('storage/' . $settings['about']['image']) : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTi6iTao9uzCT0_np_Ql0lj9_3FeGFSddBvDtRCZ0r9fQ&s=10' }}" alt="{{ $settings['institute']['name'] ?? 'Leeds Institute' }} Campus" />
         <div class="about-image-badge">
-          <div class="num">20+</div>
+          <div class="num">{{ $settings['institute']['years_experience'] ?? 20 }}+</div>
           <div class="lbl">Years of<br>Excellence</div>
         </div>
       </div>
@@ -831,7 +831,7 @@
         <h2>Building a Legacy of <span>Quality Education</span></h2>
         <div class="accent-bar"></div>
         <p>
-          Leeds Institute was founded in 2005 with a simple yet powerful mission: to make quality education accessible to every student who dreams of a better future. What started as a small learning center has grown into a fully equipped institution serving thousands of students across multiple disciplines.
+          {{ $settings['about']['about_us'] ?? 'Leeds Institute was founded in 2005 with a simple yet powerful mission: to make quality education accessible to every student who dreams of a better future. What started as a small learning center has grown into a fully equipped institution serving thousands of students across multiple disciplines.' }}
         </p>
         <p>
           Over the past two decades, we have consistently delivered outstanding results in board examinations, with a 98% pass rate that speaks volumes about our commitment to academic excellence. Our students have gone on to become doctors, engineers, entrepreneurs, and leaders in their respective fields.
@@ -851,7 +851,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   MISSION VISION VALUES
+   MISSION VISION VALUES (Dynamic from Settings)
 ═══════════════════════════════════════════════════ -->
 <section id="mission" style="background:var(--gray-50);">
   <div class="container">
@@ -859,18 +859,18 @@
       <div class="section-tag"><i class="fas fa-bullseye"></i> Our Core</div>
       <h2 class="section-title">Mission, Vision &amp; <span>Values</span></h2>
       <div class="accent-bar"></div>
-      <p class="section-sub">Our guiding principles that shape everything we do at Leeds Institute.</p>
+      <p class="section-sub">Our guiding principles that shape everything we do at {{ $settings['institute']['name'] ?? 'Leeds Institute' }}.</p>
     </div>
     <div class="mv-grid">
       <div class="mv-card" data-aos="fade-up" data-aos-delay="0">
         <div class="icon"><i class="fas fa-rocket"></i></div>
         <h3>Our Mission</h3>
-        <p>To cultivate intellectual growth, moral character, and practical skills that equip students for lifelong success and meaningful contributions to society.</p>
+        <p>{{ $settings['about']['mission'] ?? 'To cultivate intellectual growth, moral character, and practical skills that equip students for lifelong success and meaningful contributions to society.' }}</p>
       </div>
       <div class="mv-card" data-aos="fade-up" data-aos-delay="80">
         <div class="icon"><i class="fas fa-eye"></i></div>
         <h3>Our Vision</h3>
-        <p>To be the most trusted educational institution in the region, recognized for academic excellence, student achievement, and community impact.</p>
+        <p>{{ $settings['about']['vision'] ?? 'To be the most trusted educational institution in the region, recognized for academic excellence, student achievement, and community impact.' }}</p>
       </div>
       <div class="mv-card" data-aos="fade-up" data-aos-delay="160">
         <div class="icon"><i class="fas fa-heart"></i></div>
@@ -882,28 +882,26 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   CEO MESSAGE
+   CEO MESSAGE (Dynamic from Settings)
 ═══════════════════════════════════════════════════ -->
 <section class="ceo-section">
   <div class="container">
     <div class="ceo-grid">
       <div class="ceo-photo-wrap" data-aos="fade-right">
         <div class="ceo-photo">
-          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROdZ8ey95QUY6mhM2AvYu9AEPxdQl6Yno02JhtOiK_iQ&s=10" alt="Dr. Imran Khalil" />
+          <img src="{{ $settings['ceo']['photo'] ? asset('storage/' . $settings['ceo']['photo']) : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROdZ8ey95QUY6mhM2AvYu9AEPxdQl6Yno02JhtOiK_iQ&s=10' }}" alt="{{ $settings['ceo']['name'] ?? 'Dr. Imran Khalil' }}" />
         </div>
-        <div class="ceo-name">Dr. Imran Khalil</div>
-        <div class="ceo-role">Principal & CEO, Leeds Institute</div>
+        <div class="ceo-name">{{ $settings['ceo']['name'] ?? 'Dr. Imran Khalil' }}</div>
+        <div class="ceo-role">{{ $settings['ceo']['designation'] ?? 'Principal & CEO, Leeds Institute' }}</div>
       </div>
       <div class="ceo-content" data-aos="fade-left">
         <span class="ceo-quote-mark">"</span>
         <p class="ceo-message">
-          At Leeds Institute, we believe education is not merely the transfer of knowledge — it is the transformation of lives. Every student who walks through our doors carries with them a dream, and it is our sacred responsibility to nurture that dream with the finest teaching, the most supportive environment, and the highest standards of academic rigour.
-          <br><br>
-          Our commitment to excellence is reflected not just in our examination results, but in the leaders, professionals, and responsible citizens our graduates become. I invite every aspiring student and supportive parent to join the Leeds family — where your future begins today.
+          {{ $settings['ceo']['message'] ?? 'At Leeds Institute, we believe education is not merely the transfer of knowledge — it is the transformation of lives. Every student who walks through our doors carries with them a dream, and it is our sacred responsibility to nurture that dream with the finest teaching, the most supportive environment, and the highest standards of academic rigour. Our commitment to excellence is reflected not just in our examination results, but in the leaders, professionals, and responsible citizens our graduates become. I invite every aspiring student and supportive parent to join the Leeds family — where your future begins today.' }}
         </p>
         <div class="ceo-sig">
           <div class="ceo-sig-line"></div>
-          <div class="ceo-sig-text">— Dr. Imran Khalil, Principal</div>
+          <div class="ceo-sig-text">— {{ $settings['ceo']['name'] ?? 'Dr. Imran Khalil' }}, Principal</div>
           <div class="ceo-sig-line"></div>
         </div>
       </div>
@@ -912,7 +910,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   WHY CHOOSE US - SHORT
+   WHY CHOOSE US - SHORT (Dynamic from Settings)
 ═══════════════════════════════════════════════════ -->
 <section style="background:var(--white);">
   <div class="container">
@@ -920,7 +918,7 @@
       <div class="section-tag"><i class="fas fa-star"></i> Why Leeds</div>
       <h2 class="section-title">What Makes Us <span>Different</span></h2>
       <div class="accent-bar"></div>
-      <p class="section-sub">We are committed to delivering an education that goes beyond textbooks — building character, skills, and futures.</p>
+      <p class="section-sub">{{ $settings['about']['why_choose'] ?? 'We are committed to delivering an education that goes beyond textbooks — building character, skills, and futures.' }}</p>
     </div>
     <div class="why-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:52px;">
       <div class="why-card" data-aos="fade-up" data-aos-delay="0" style="background:var(--white);border-radius:var(--radius-lg);padding:28px 24px;box-shadow:var(--shadow-sm);border:1px solid var(--gray-200);transition:var(--transition);cursor:default;text-align:center;">
@@ -946,72 +944,85 @@
       </div>
     </div>
     <div style="text-align:center;margin-top:40px;">
-      <a href="contact.html" class="btn btn-primary"><i class="fas fa-phone"></i> Get In Touch</a>
+      <a href="{{ route('contact') }}" class="btn btn-primary"><i class="fas fa-phone"></i> Get In Touch</a>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-   FOOTER
+   FOOTER (Dynamic Courses)
 ═══════════════════════════════════════════════════ -->
 <footer id="footer">
   <div class="footer-top">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="{{ route('home') }}" class="logo">
             <div class="logo-mark">LI</div>
             <div class="logo-text">
-              <strong>Leeds Institute</strong>
-              <span>Quality Education Since 2005</span>
+              <strong>{{ $settings['institute']['name'] ?? 'Leeds Institute' }}</strong>
+              <span>{{ $settings['institute']['tagline'] ?? 'Quality Education Since 2005' }}</span>
             </div>
           </a>
-          <p>Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.</p>
+          <p>{{ $settings['institute']['about_description'] ?? 'Leeds Institute is dedicated to delivering quality education that prepares students for academic excellence and lifelong success in an ever-changing world.' }}</p>
           <div class="footer-social">
-            <a href="#" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-btn" title="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" class="social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-btn" title="YouTube"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="social-btn" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            @if($settings['social']['facebook'])
+              <a href="{{ $settings['social']['facebook'] }}" class="social-btn" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            @endif
+            @if($settings['social']['twitter'])
+              <a href="{{ $settings['social']['twitter'] }}" class="social-btn" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+            @endif
+            @if($settings['social']['instagram'])
+              <a href="{{ $settings['social']['instagram'] }}" class="social-btn" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            @endif
+            @if($settings['social']['youtube'])
+              <a href="{{ $settings['social']['youtube'] }}" class="social-btn" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+            @endif
+            @if($settings['social']['tiktok'])
+              <a href="{{ $settings['social']['tiktok'] }}" class="social-btn" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            @endif
           </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="index.html"><i class="fas fa-chevron-right"></i> Home</a></li>
-            <li><a href="about.html"><i class="fas fa-chevron-right"></i> About Us</a></li>
-            <li><a href="teachers.html"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
-            <li><a href="gallery.html"><i class="fas fa-chevron-right"></i> Gallery</a></li>
-            <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+            <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+            <li><a href="{{ route('aboutus') }}"><i class="fas fa-chevron-right"></i> About Us</a></li>
+            <li><a href="{{ route('teachers') }}"><i class="fas fa-chevron-right"></i> Our Faculty</a></li>
+            <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> Gallery</a></li>
+            <li><a href="{{ route('contact') }}"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Programs</h4>
           <ul>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Medical</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> FSc Pre-Engineering</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> ICS / I.Com</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Matric Science</a></li>
-            <li><a href="courses.html"><i class="fas fa-chevron-right"></i> Computer Diploma</a></li>
+            @foreach($allCourses->take(5) as $course)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> {{ $course->name }}</a></li>
+            @endforeach
+            @if($allCourses->count() > 5)
+              <li><a href="{{ route('courses') }}"><i class="fas fa-chevron-right"></i> View All</a></li>
+            @endif
           </ul>
         </div>
         <div class="footer-col">
           <h4>Admissions</h4>
           <ul>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
-            <li><a href="admissions.html"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
-            <li><a href="faq.html"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Visit Our Office</a></li>
+            <li><a href="{{ route('admissions') }}"><i class="fas fa-chevron-right"></i> Admission Process</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Scholarships</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> Fee Structure</a></li>
+            <li><a href="{{ route('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Contact Info</h4>
           <ul class="footer-contact">
-            <li><i class="fas fa-map-marker-alt"></i> Main Road, City, Pakistan</li>
-            <li><i class="fas fa-phone"></i> +92-XXX-XXXXXXX</li>
-            <li><i class="fas fa-envelope"></i> info@leedsinstitute.edu.pk</li>
-            <li><i class="fab fa-whatsapp"></i> +92-XXX-XXXXXXX</li>
+            <li><i class="fas fa-map-marker-alt"></i> {{ $settings['contact']['address'] ?? 'Main Road, City, Pakistan' }}</li>
+            <li><i class="fas fa-phone"></i> {{ $settings['contact']['phone'] ?? '+92-XXX-XXXXXXX' }}</li>
+            <li><i class="fas fa-envelope"></i> {{ $settings['contact']['email'] ?? 'info@leedsinstitute.edu.pk' }}</li>
+            @if($settings['contact']['whatsapp'])
+              <li><i class="fab fa-whatsapp"></i> {{ $settings['contact']['whatsapp'] }}</li>
+            @endif
             <li><i class="fas fa-clock"></i> Mon–Sat: 8:00 AM – 5:00 PM</li>
           </ul>
         </div>
@@ -1021,12 +1032,12 @@
   <div class="container">
     <div class="footer-bottom">
       <div style="color:rgba(255,255,255,.45)">
-        &copy; 2025 Leeds Institute. All Rights Reserved.
+        &copy; {{ date('Y') }} {{ $settings['institute']['name'] ?? 'Leeds Institute' }}. All Rights Reserved.
       </div>
       <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Sitemap</a>
+        <a href="{{ route('Terms_Privacy') }}">Privacy Policy</a>
+        <a href="{{ route('Terms_Privacy') }}">Terms & Conditions</a>
+        <a href="{{ route('home') }}">Sitemap</a>
       </div>
     </div>
   </div>
@@ -1077,7 +1088,7 @@
   const navLinks = document.querySelectorAll('.nav-list a');
   navLinks.forEach(link => {
     link.classList.remove('active');
-    if (link.getAttribute('href') === 'about.html') {
+    if (link.getAttribute('href') === '{{ route('aboutus') }}') {
       link.classList.add('active');
     }
   });

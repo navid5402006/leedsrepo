@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/PublicSideController.php
 
 namespace App\Http\Controllers;
 
@@ -8,18 +9,17 @@ use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Certificate;
-use App\Models\Enquiry;  // <-- ADD THIS
+use App\Models\Gallery;
+use App\Models\Enquiry;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;  // <-- ADD THIS
+use Illuminate\Support\Facades\Log;
 
 class PublicSideController extends Controller
 {
     public function home()
     {
-        // Get all settings
         $settings = Setting::getAllSettings();
         
-        // Get real data from database
         $stats = [
             'students' => Student::count(),
             'teachers' => Teacher::count(),
@@ -27,106 +27,126 @@ class PublicSideController extends Controller
             'success_rate' => $this->calculateSuccessRate(),
         ];
         
-        // Get featured courses (limit to 6)
-        $courses = Course::with('teacher')
-            ->where('status', true)
+        $courses = Course::where('status', true)
             ->orderBy('created_at', 'desc')
             ->limit(6)
             ->get();
         
-        // Get teachers (limit to 4)
         $teachers = Teacher::where('status', true)
             ->orderBy('created_at', 'desc')
             ->limit(4)
             ->get();
         
+        // Get all courses for footer
+        $allCourses = Course::where('status', true)->get();
        
-        return view('public.home', compact('settings', 'stats', 'courses', 'teachers'));
+        return view('public.home', compact('settings', 'stats', 'courses', 'teachers', 'allCourses'));
     }
     
     private function calculateSuccessRate()
     {
         $total = Student::count();
-        if ($total === 0) return 98; // Default value
+        if ($total === 0) return 98;
         
-        $passed = Student::where('status', 'passed')->count();
+        $passed = Student::where('status', 'active')->count();
         return round(($passed / $total) * 100);
     }
 
-    public function aboutus()
+        public function aboutus()
     {
         $settings = Setting::getAllSettings();
-        return view('public.aboutus', compact('settings'));
+        $allCourses = Course::where('status', true)->get();
+        
+        // Get real stats from database
+        $stats = [
+            'students' => Student::count(),
+            'teachers' => Teacher::count(),
+            'courses' => Course::count(),
+            'success_rate' => $this->calculateSuccessRate(),
+        ];
+        
+        return view('public.aboutus', compact('settings', 'allCourses', 'stats'));
     }
+
 
     public function courses()
     {
         $settings = Setting::getAllSettings();
         $courses = Course::where('status', true)->get();
-        return view('public.courses', compact('settings', 'courses'));
+        $allCourses = $courses;
+        return view('public.courses', compact('settings', 'courses', 'allCourses'));
     }
 
     public function admissions()
     {
         $settings = Setting::getAllSettings();
-        return view('public.admissions', compact('settings'));
+        $allCourses = Course::where('status', true)->get();
+        return view('public.admissions', compact('settings', 'allCourses'));
     }
 
     public function faq()
     {
         $settings = Setting::getAllSettings();
-        return view('public.faq', compact('settings'));
+        $allCourses = Course::where('status', true)->get();
+        return view('public.faq', compact('settings', 'allCourses'));
     }
 
     public function teachers()
-    {
-        $settings = Setting::getAllSettings();
-        $teachers = Teacher::where('status', true)->get();
-        return view('public.teachers', compact('settings', 'teachers'));
-    }
+{
+    $settings = Setting::getAllSettings();
+    $teachers = Teacher::where('status', true)->get();
+    $allCourses = Course::where('status', true)->get();
+    return view('public.teachers', compact('settings', 'teachers', 'allCourses'));
+}
 
-    public function gallery()
-    {
-        $settings = Setting::getAllSettings();
-        return view('public.gallery', compact('settings'));
-    }
+
+   public function gallery()
+{
+    $settings = Setting::getAllSettings();
+    $galleries = Gallery::active()->ordered()->get();
+    $allCourses = Course::where('status', true)->get();
+    return view('public.gallery', compact('settings', 'galleries', 'allCourses'));
+}
+
 
     public function contact()
     {
         $settings = Setting::getAllSettings();
-        // Get courses for the dropdown
         $courses = Course::where('status', true)->get();
-        return view('public.contact', compact('settings', 'courses'));
+        $allCourses = $courses;
+        return view('public.contact', compact('settings', 'courses', 'allCourses'));
     }
 
     public function crtverfictaion()
     {
         $settings = Setting::getAllSettings();
-        return view('public.crtverfictaion', compact('settings'));
+        $allCourses = Course::where('status', true)->get();
+        return view('public.crtverfictaion', compact('settings', 'allCourses'));
     }
 
     public function certifcate_number_verfy($certificate_number)
     {
         $settings = Setting::getAllSettings();
         $certificate = Certificate::where('certificate_number', $certificate_number)->first();
-        return view('public.certificate_verify', compact('settings', 'certificate'));
+        $allCourses = Course::where('status', true)->get();
+        return view('public.certificate_verify', compact('settings', 'certificate', 'allCourses'));
     }
 
     public function search_results(Request $request)
     {
         $settings = Setting::getAllSettings();
         $query = $request->get('q');
-        // Add search logic here
-        return view('public.search_results', compact('settings', 'query'));
+        $allCourses = Course::where('status', true)->get();
+        return view('public.search_results', compact('settings', 'query', 'allCourses'));
     }
 
     public function Terms_Privacy()
     {
         $settings = Setting::getAllSettings();
-        return view('public.terms_privacy', compact('settings'));
+        $allCourses = Course::where('status', true)->get();
+        return view('public.terms_privacy', compact('settings', 'allCourses'));
     }
 
-    // Store Enquiry from Contact Form
     public function storeEnquiry(Request $request)
     {
         try {
@@ -146,9 +166,6 @@ class PublicSideController extends Controller
                 'message' => $validated['message'] ?? null,
                 'status' => 'new',
             ]);
-
-            // Optional: Send email notification to admin
-            // Mail::to('admin@leedsinstitute.edu.pk')->send(new NewEnquiryNotification($enquiry));
 
             return response()->json([
                 'success' => true,

@@ -48,6 +48,11 @@
             <a href="{{ url('/admin/enquiries') }}"><i class="fas fa-envelope"></i> Enquiries</a>
         </li>
 
+        <li class="menu-label">Website</li>
+        <li class="{{ request()->is('admin/gallery*') ? 'active' : '' }}">
+            <a href="{{ url('/admin/gallery') }}"><i class="fas fa-images"></i> Gallery</a>
+        </li>
+
         <li class="menu-label">System</li>
         <li class="{{ request()->is('admin/settings*') ? 'active' : '' }}">
             <a href="{{ url('/admin/settings') }}"><i class="fas fa-cog"></i> Settings</a>
@@ -68,9 +73,7 @@
 
 
 <style>
-  /* resources/css/sidebar.css */
-
-/* Premium Sidebar */
+/* ─── Premium Sidebar with Leeds Colors (Red & Yellow Dominant) ─── */
 .sidebar {
     width: 280px;
     background: linear-gradient(180deg, #0A1628 0%, #1A2A4A 100%);
@@ -89,7 +92,7 @@
 }
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-.sidebar::-webkit-scrollbar-thumb { background: #6D4AFF; border-radius: 10px; }
+.sidebar::-webkit-scrollbar-thumb { background: #FFC107; border-radius: 10px; }
 
 .sidebar-brand {
     display: flex;
@@ -100,35 +103,53 @@
     position: relative;
 }
 .sidebar-brand .logo-icon {
-    background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
-    width: 48px;
-    height: 48px;
+    background: linear-gradient(135deg, #E53935, #FFC107, #E53935);
+    width: 52px;
+    height: 52px;
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 26px;
     color: #fff;
-    box-shadow: 0 4px 15px rgba(109,74,255,0.3);
+    box-shadow: 0 4px 20px rgba(229,57,53,0.4);
+    transition: all 0.3s;
+    border: 2px solid rgba(255,193,7,0.3);
 }
-.sidebar-brand .brand-text {
-    display: flex;
-    flex-direction: column;
+.sidebar-brand .logo-icon:hover {
+    transform: scale(1.05) rotate(-5deg);
+    box-shadow: 0 8px 30px rgba(229,57,53,0.5);
+    border-color: #FFC107;
 }
 .sidebar-brand .brand-text .name {
     font-weight: 800;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: -0.5px;
     color: #fff;
+    text-shadow: 0 2px 10px rgba(255,193,7,0.1);
 }
-.sidebar-brand .brand-text .name span { color: #8B6FFF; }
+.sidebar-brand .brand-text .name span {
+    color: #FFC107;
+    position: relative;
+    text-shadow: 0 0 30px rgba(255,193,7,0.3);
+}
+.sidebar-brand .brand-text .name span::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #E53935, #FFC107, #E53935);
+    border-radius: 2px;
+}
 .sidebar-brand .brand-text .tagline {
     font-size: 10px;
     font-weight: 500;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,193,7,0.6);
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-top: 0px;
+    margin-top: 2px;
 }
 
 .sidebar-menu {
@@ -139,10 +160,21 @@
 .sidebar-menu .menu-label {
     font-size: 11px;
     font-weight: 600;
-    color: rgba(255,255,255,0.3);
+    color: rgba(255,193,7,0.4);
     text-transform: uppercase;
     letter-spacing: 1.5px;
     padding: 16px 12px 8px;
+    position: relative;
+}
+.sidebar-menu .menu-label::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    bottom: 0;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, #FFC107, #E53935);
+    border-radius: 2px;
 }
 .sidebar-menu li { margin-bottom: 2px; }
 .sidebar-menu li a {
@@ -155,42 +187,80 @@
     font-weight: 500;
     font-size: 14px;
     text-decoration: none;
-    transition: all 0.2s;
+    transition: all 0.25s;
     position: relative;
 }
 .sidebar-menu li a i {
     width: 20px;
     font-size: 16px;
     text-align: center;
-    color: rgba(255,255,255,0.4);
-    transition: color 0.2s;
+    color: rgba(255,255,255,0.35);
+    transition: color 0.3s;
 }
 .sidebar-menu li a:hover {
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    transform: translateX(3px);
+    background: rgba(255,193,7,0.1);
+    color: #FFC107;
+    transform: translateX(4px);
 }
-.sidebar-menu li a:hover i { color: #fff; }
+.sidebar-menu li a:hover i { 
+    color: #E53935; 
+}
 .sidebar-menu li.active a {
-    background: rgba(109,74,255,0.2);
-    color: #fff;
+    background: rgba(255,193,7,0.15);
+    color: #FFC107;
     font-weight: 600;
+    border-left: 4px solid #E53935;
+    box-shadow: inset 0 0 20px rgba(229,57,53,0.05);
 }
-.sidebar-menu li.active a i { color: #8B6FFF; }
+.sidebar-menu li.active a i { 
+    color: #E53935;
+    text-shadow: 0 0 20px rgba(229,57,53,0.3);
+}
 .sidebar-menu li.active a::before {
     content: '';
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    width: 4px;
-    height: 24px;
-    background: linear-gradient(180deg, #6D4AFF, #8B6FFF);
-    border-radius: 0 4px 4px 0;
+    width: 3px;
+    height: 30px;
+    background: linear-gradient(180deg, #E53935, #FFC107);
+    border-radius: 0 3px 3px 0;
+}
+
+/* ─── Hover state with red/yellow glow ─── */
+.sidebar-menu li a:hover {
+    background: rgba(255,193,7,0.08);
+    color: #FFC107;
+    box-shadow: 0 0 20px rgba(255,193,7,0.02);
+}
+.sidebar-menu li a:hover i {
+    color: #E53935;
+}
+
+/* ─── Active state with red/yellow accent ─── */
+.sidebar-menu li.active a {
+    background: rgba(229,57,53,0.08);
+    color: #FFC107;
+    border-left: 4px solid #FFC107;
+}
+.sidebar-menu li.active a i { 
+    color: #FFC107; 
+}
+.sidebar-menu li.active a::before {
+    background: linear-gradient(180deg, #FFC107, #E53935);
+}
+
+/* ─── Menu label with red/yellow gradient ─── */
+.sidebar-menu .menu-label {
+    color: rgba(255,193,7,0.5);
+}
+.sidebar-menu .menu-label::before {
+    background: linear-gradient(90deg, #E53935, #FFC107);
 }
 
 .sidebar-footer {
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(255,193,7,0.1);
     padding-top: 16px;
     margin-top: 8px;
 }
@@ -198,28 +268,30 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-radius: 12px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,193,7,0.04);
     transition: background 0.2s;
     cursor: pointer;
+    border: 1px solid rgba(255,193,7,0.05);
 }
-.sidebar-footer .user-card:hover { background: rgba(255,255,255,0.08); }
+.sidebar-footer .user-card:hover { 
+    background: rgba(255,193,7,0.1);
+    border: 1px solid rgba(255,193,7,0.2);
+}
 .sidebar-footer .user-card .avatar {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6D4AFF, #8B6FFF);
+    background: linear-gradient(135deg, #E53935, #FFC107);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 17px;
     color: #fff;
     flex-shrink: 0;
-}
-.sidebar-footer .user-card .info {
-    flex: 1;
+    box-shadow: 0 2px 15px rgba(229,57,53,0.3);
 }
 .sidebar-footer .user-card .info .name {
     font-weight: 600;
@@ -228,19 +300,20 @@
 }
 .sidebar-footer .user-card .info .role {
     font-size: 12px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,193,7,0.5);
 }
 .sidebar-footer .user-card .badge {
-    background: #10B981;
+    background: #E53935;
     color: #fff;
     font-size: 9px;
     font-weight: 700;
     padding: 2px 10px;
     border-radius: 30px;
     letter-spacing: 0.5px;
+    box-shadow: 0 2px 10px rgba(229,57,53,0.3);
 }
 
-/* Responsive Sidebar */
+/* ─── Responsive Sidebar ─── */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
