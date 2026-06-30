@@ -466,299 +466,372 @@
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">Action completed</span></div>
 
     <script>
-        // ─── Global Variables ───
-        let courses = [];
-        let currentPage = 1;
-        const perPage = 10;
-        let deleteId = null;
-
-        // ─── CSRF Token ───
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // ─── Load Courses from Database ───
-        async function loadCourses() {
-            try {
-                const response = await fetch('{{ route("admin.courses.index") }}', {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+    // ─── Loading Overlay ───
+    function showLoading(message = 'Processing...') {
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                flex-direction: column;
+            `;
+            loadingOverlay.innerHTML = `
+                <div style="background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+                        <div style="position: absolute; inset: 0; border: 4px solid #EDE7FF; border-radius: 50%;"></div>
+                        <div style="position: absolute; inset: 0; border: 4px solid transparent; border-top-color: #6D4AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="position: absolute; inset: 10px; border: 4px solid transparent; border-top-color: #8B6FFF; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                        <div style="position: absolute; inset: 20px; border: 4px solid transparent; border-top-color: #D4AF37; border-radius: 50%; animation: spin 2s linear infinite;"></div>
+                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6D4AFF;">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0A1628; margin-bottom: 8px;">Processing</h3>
+                    <p style="font-size: 14px; color: #64748B; margin-bottom: 4px;" id="loadingMessage">${message}</p>
+                    <div style="width: 100%; height: 4px; background: #F1F5F9; border-radius: 4px; margin-top: 16px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #6D4AFF, #8B6FFF, #D4AF37); border-radius: 4px; animation: progressBar 2.5s ease-in-out infinite;" id="progressBar"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">Please wait...</p>
+                </div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes progressBar { 
+                        0% { width: 0%; } 
+                        50% { width: 70%; } 
+                        100% { width: 100%; } 
                     }
-                });
-                const data = await response.json();
-                courses = data.data || [];
-                renderTable();
-            } catch (error) {
-                console.error('Error loading courses:', error);
-                showToast('⚠️ Error loading courses');
-                document.getElementById('courseTableBody').innerHTML = `
-                    <tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">
-                        <i class="fas fa-exclamation-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
-                        Failed to load courses. Please refresh the page.
-                    </td></tr>
-                `;
-            }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
         }
+        loadingOverlay.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = message;
+    }
 
-        // ─── Render Table ───
-        function renderTable() {
-            const filtered = getFilteredCourses();
-            const total = filtered.length;
-            const totalPages = Math.ceil(total / perPage);
-            if (currentPage > totalPages) currentPage = totalPages || 1;
-            const start = (currentPage - 1) * perPage;
-            const pageData = filtered.slice(start, start + perPage);
-
-            const tbody = document.getElementById('courseTableBody');
-            if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">No courses found</td></tr>`;
-            } else {
-                tbody.innerHTML = pageData.map((c, index) => {
-                    const statusClass = c.status || 'active';
-                    // Get instructor names
-                    let instructorNames = 'No instructors';
-                    if (c.instructor_ids) {
-                        try {
-                            const ids = JSON.parse(c.instructor_ids);
-                            if (Array.isArray(ids) && ids.length > 0) {
-                                // We'll fetch instructor names from the data or display IDs
-                                instructorNames = ids.map(id => {
-                                    // Try to find instructor name from the course data if available
-                                    if (c.instructors && c.instructors.length > 0) {
-                                        const inst = c.instructors.find(i => i.id === id);
-                                        if (inst) return inst.name;
-                                    }
-                                    return 'ID: ' + id;
-                                }).join(', ');
-                            }
-                        } catch(e) {
-                            instructorNames = 'No instructors';
-                        }
-                    }
-                    
-                    return `
-                        <tr>
-                            <td>${start + index + 1}</td>
-                            <td><strong>${c.course_code || 'N/A'}</strong></td>
-                            <td><strong>${c.name}</strong></td>
-                            <td>${c.duration || '-'}</td>
-                            <td>PKR ${parseFloat(c.original_fee).toLocaleString()}</td>
-                            <td>${instructorNames}</td>
-                            <td><span class="status-badge ${statusClass}">${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}</span></td>
-                            <td>
-                                <div class="action-dropdown">
-                                    <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
-                                    <div class="dd-menu">
-                                        <a href="#" onclick="viewCourse(${c.id}); return false;"><i class="fas fa-eye"></i> View Details</a>
-                                        <a href="#" onclick="editCourse(${c.id}); return false;"><i class="fas fa-edit"></i> Edit Course</a>
-                                        <a href="#" onclick="deleteCourse(${c.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-
-            document.getElementById('recordCount').textContent = `Showing ${start + 1}-${Math.min(start + perPage, total)} of ${total}`;
-            renderPagination(totalPages);
+    function hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
         }
+    }
 
-        // ─── Render Pagination ───
-        function renderPagination(totalPages) {
-            const container = document.getElementById('paginationControls');
-            if (totalPages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
-            let html = '';
-            if (currentPage > 1) {
-                html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage - 1})">Prev</button>`;
-            }
-            for (let i = 1; i <= totalPages; i++) {
-                const active = i === currentPage ? 'background:#6D4AFF; color:#fff; border-color:#6D4AFF;' : '';
-                html += `<button class="btn-reset" style="padding:4px 14px; ${active}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            if (currentPage < totalPages) {
-                html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage + 1})">Next</button>`;
-            }
-            container.innerHTML = html;
-        }
+    // ─── Global Variables ───
+    let courses = [];
+    let currentPage = 1;
+    const perPage = 10;
+    let deleteId = null;
+    let isProcessing = false;
 
-        function goToPage(page) {
-            currentPage = page;
-            renderTable();
-        }
+    // ─── CSRF Token ───
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // ─── Filter Functions ───
-        function getFilteredCourses() {
-            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const status = document.getElementById('filterStatus').value;
-            return courses.filter(c => {
-                const matchSearch = search === '' || 
-                    (c.name && c.name.toLowerCase().includes(search)) || 
-                    (c.course_code && c.course_code.toLowerCase().includes(search));
-                const matchStatus = status === '' || (c.status && c.status === status);
-                return matchSearch && matchStatus;
+    // ─── Load Courses from Database ───
+    async function loadCourses() {
+        try {
+            const response = await fetch('{{ route("admin.courses.index") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
-        }
-
-        function filterTable() {
-            currentPage = 1;
+            const data = await response.json();
+            courses = data.data || [];
             renderTable();
+        } catch (error) {
+            console.error('Error loading courses:', error);
+            showToast('⚠️ Error loading courses');
+            document.getElementById('courseTableBody').innerHTML = `
+                <tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">
+                    <i class="fas fa-exclamation-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                    Failed to load courses. Please refresh the page.
+                </td></tr>
+            `;
+        }
+    }
+
+    // ─── Render Table ───
+    function renderTable() {
+        const filtered = getFilteredCourses();
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / perPage);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const start = (currentPage - 1) * perPage;
+        const pageData = filtered.slice(start, start + perPage);
+
+        const tbody = document.getElementById('courseTableBody');
+        if (pageData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">No courses found</td></tr>`;
+        } else {
+            tbody.innerHTML = pageData.map((c, index) => {
+                const statusClass = c.status || 'active';
+                let instructorNames = 'No instructors';
+                if (c.instructor_ids) {
+                    try {
+                        const ids = JSON.parse(c.instructor_ids);
+                        if (Array.isArray(ids) && ids.length > 0) {
+                            if (c.instructors && c.instructors.length > 0) {
+                                instructorNames = c.instructors.map(inst => inst.name).join(', ');
+                            } else {
+                                instructorNames = ids.map(id => 'ID: ' + id).join(', ');
+                            }
+                        }
+                    } catch(e) {
+                        instructorNames = 'No instructors';
+                    }
+                }
+                
+                return `
+                    <tr>
+                        <td>${start + index + 1}</td>
+                        <td><strong>${c.course_code || 'N/A'}</strong></td>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.duration || '-'}</td>
+                        <td>PKR ${parseFloat(c.original_fee).toLocaleString()}</td>
+                        <td>${instructorNames}</td>
+                        <td><span class="status-badge ${statusClass}">${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}</span></td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dd-menu">
+                                    <a href="#" onclick="viewCourse(${c.id}); return false;"><i class="fas fa-eye"></i> View Details</a>
+                                    <a href="#" onclick="editCourse(${c.id}); return false;"><i class="fas fa-edit"></i> Edit Course</a>
+                                    <a href="#" onclick="deleteCourse(${c.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function resetFilters() {
-            document.getElementById('filterSearch').value = '';
-            document.getElementById('filterStatus').value = '';
-            document.getElementById('globalSearch').value = '';
-            filterTable();
-        }
+        document.getElementById('recordCount').textContent = `Showing ${start + 1}-${Math.min(start + perPage, total)} of ${total}`;
+        renderPagination(totalPages);
+    }
 
-        // ─── Toggle Dropdown ───
-        function toggleDD(btn) {
-            const menu = btn.nextElementSibling;
-            document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
-            menu.classList.toggle('open');
+    // ─── Render Pagination ───
+    function renderPagination(totalPages) {
+        const container = document.getElementById('paginationControls');
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
         }
+        let html = '';
+        if (currentPage > 1) {
+            html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage - 1})">Prev</button>`;
+        }
+        for (let i = 1; i <= totalPages; i++) {
+            const active = i === currentPage ? 'background:#6D4AFF; color:#fff; border-color:#6D4AFF;' : '';
+            html += `<button class="btn-reset" style="padding:4px 14px; ${active}" onclick="goToPage(${i})">${i}</button>`;
+        }
+        if (currentPage < totalPages) {
+            html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage + 1})">Next</button>`;
+        }
+        container.innerHTML = html;
+    }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.action-dropdown')) {
-                document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
-            }
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
+
+    // ─── Filter Functions ───
+    function getFilteredCourses() {
+        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const status = document.getElementById('filterStatus').value;
+        return courses.filter(c => {
+            const matchSearch = search === '' || 
+                (c.name && c.name.toLowerCase().includes(search)) || 
+                (c.course_code && c.course_code.toLowerCase().includes(search));
+            const matchStatus = status === '' || (c.status && c.status === status);
+            return matchSearch && matchStatus;
         });
+    }
 
-        // ─── Sidebar Toggle ───
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('active');
+    function filterTable() {
+        currentPage = 1;
+        renderTable();
+    }
+
+    function resetFilters() {
+        document.getElementById('filterSearch').value = '';
+        document.getElementById('filterStatus').value = '';
+        document.getElementById('globalSearch').value = '';
+        filterTable();
+    }
+
+    // ─── Toggle Dropdown ───
+    function toggleDD(btn) {
+        const menu = btn.nextElementSibling;
+        document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+        menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-dropdown')) {
+            document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
         }
-        document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-        document.getElementById('overlay').addEventListener('click', toggleSidebar);
+    });
 
-        // ─── Profile Dropdown ───
-        const profileBtn = document.getElementById('profileBtn');
-        const profileDropdown = document.getElementById('profileDropdown');
-        profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
-        });
+    // ─── Sidebar Toggle ───
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+    document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+    document.getElementById('overlay').addEventListener('click', toggleSidebar);
 
-        // ─── Modal Functions ───
-        function openModal() {
-            document.getElementById('courseModal').classList.add('active');
+    // ─── Profile Dropdown ───
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
+    });
+
+    // ─── Modal Functions ───
+    function openModal() {
+        document.getElementById('courseModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('courseModal').classList.remove('active');
+        document.getElementById('courseForm').reset();
+        document.getElementById('courseId').value = '';
+    }
+
+    // ─── Add Course ───
+    document.getElementById('addCourseBtn').addEventListener('click', function() {
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-book-open" style="color:#6D4AFF; margin-right:10px;"></i> Add New Course';
+        document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save Course';
+        document.getElementById('courseForm').reset();
+        document.getElementById('courseId').value = '';
+        document.getElementById('cStatus').value = 'active';
+        const select = document.getElementById('cInstructors');
+        for (let i = 0; i < select.options.length; i++) {
+            select.options[i].selected = false;
         }
+        openModal();
+    });
 
-        function closeModal() {
-            document.getElementById('courseModal').classList.remove('active');
-            document.getElementById('courseForm').reset();
-            document.getElementById('courseId').value = '';
-        }
+    // ─── Edit Course ───
+    async function editCourse(id) {
+        try {
+            const response = await fetch(`/admin/courses/${id}/edit`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            const course = data.data;
 
-        // ─── Add Course ───
-        document.getElementById('addCourseBtn').addEventListener('click', function() {
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-book-open" style="color:#6D4AFF; margin-right:10px;"></i> Add New Course';
-            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save Course';
-            document.getElementById('courseForm').reset();
-            document.getElementById('courseId').value = '';
-            document.getElementById('cStatus').value = 'active';
-            // Deselect all instructors
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF; margin-right:10px;"></i> Edit Course';
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Update Course';
+            document.getElementById('courseId').value = course.id;
+            document.getElementById('cName').value = course.name || '';
+            document.getElementById('cFee').value = course.original_fee || '';
+            document.getElementById('cDuration').value = course.duration || '';
+            document.getElementById('cDescription').value = course.description || '';
+            document.getElementById('cStatus').value = course.status || 'active';
+            
             const select = document.getElementById('cInstructors');
             for (let i = 0; i < select.options.length; i++) {
                 select.options[i].selected = false;
             }
-            openModal();
-        });
-
-        // ─── Edit Course ───
-        async function editCourse(id) {
-            try {
-                const response = await fetch(`/admin/courses/${id}/edit`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                const data = await response.json();
-                const course = data.data;
-
-                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF; margin-right:10px;"></i> Edit Course';
-                document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Update Course';
-                document.getElementById('courseId').value = course.id;
-                document.getElementById('cName').value = course.name || '';
-                document.getElementById('cFee').value = course.original_fee || '';
-                document.getElementById('cDuration').value = course.duration || '';
-                document.getElementById('cDescription').value = course.description || '';
-                document.getElementById('cStatus').value = course.status || 'active';
-                
-                // Select instructors
-                const select = document.getElementById('cInstructors');
-                for (let i = 0; i < select.options.length; i++) {
-                    select.options[i].selected = false;
-                }
-                if (course.instructor_ids) {
-                    const ids = typeof course.instructor_ids === 'string' ? JSON.parse(course.instructor_ids) : course.instructor_ids;
-                    if (Array.isArray(ids)) {
-                        for (let i = 0; i < select.options.length; i++) {
-                            if (ids.includes(parseInt(select.options[i].value))) {
-                                select.options[i].selected = true;
-                            }
+            if (course.instructor_ids) {
+                const ids = typeof course.instructor_ids === 'string' ? JSON.parse(course.instructor_ids) : course.instructor_ids;
+                if (Array.isArray(ids)) {
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (ids.includes(parseInt(select.options[i].value))) {
+                            select.options[i].selected = true;
                         }
                     }
                 }
-                
-                openModal();
-            } catch (error) {
-                showToast('⚠️ Error loading course data');
             }
-        }
-
-        // ─── View Course ───
-        async function viewCourse(id) {
-            try {
-                const response = await fetch(`/admin/courses/${id}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                const data = await response.json();
-                const c = data.data;
-                alert(`📚 Course Details\n\nCode: ${c.course_code}\nName: ${c.name}\nDuration: ${c.duration}\nFee: PKR ${parseFloat(c.original_fee).toLocaleString()}\nDescription: ${c.description || 'N/A'}\nStatus: ${c.status}`);
-            } catch (error) {
-                showToast('⚠️ Error loading course details');
-            }
-        }
-
-        // ─── Save Course ───
-        async function saveCourse(e) {
-            e.preventDefault();
-            const id = document.getElementById('courseId').value;
             
-            // Get selected instructors
-            const select = document.getElementById('cInstructors');
-            const selectedInstructors = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
+            openModal();
+        } catch (error) {
+            showToast('⚠️ Error loading course data');
+        }
+    }
 
-            const formData = {
-                name: document.getElementById('cName').value,
-                original_fee: document.getElementById('cFee').value,
-                duration: document.getElementById('cDuration').value,
-                description: document.getElementById('cDescription').value,
-                status: document.getElementById('cStatus').value,
-                instructors: selectedInstructors
-            };
+    // ─── View Course ───
+    async function viewCourse(id) {
+        try {
+            const response = await fetch(`/admin/courses/${id}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            const c = data.data;
+            alert(`📚 Course Details\n\nCode: ${c.course_code}\nName: ${c.name}\nDuration: ${c.duration}\nFee: PKR ${parseFloat(c.original_fee).toLocaleString()}\nDescription: ${c.description || 'N/A'}\nStatus: ${c.status}`);
+        } catch (error) {
+            showToast('⚠️ Error loading course details');
+        }
+    }
 
-            const url = id ? `/admin/courses/${id}` : '{{ route("admin.courses.store") }}';
-            const method = id ? 'PUT' : 'POST';
+    // ─── Save Course with Loading Animation ───
+    async function saveCourse(e) {
+        e.preventDefault();
+        
+        if (isProcessing) {
+            showToast('⏳ Please wait, course is being saved...', 'warning');
+            return;
+        }
 
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify(formData)
-                });
+        const id = document.getElementById('courseId').value;
+        const select = document.getElementById('cInstructors');
+        const selectedInstructors = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
 
-                const result = await response.json();
+        const formData = {
+            name: document.getElementById('cName').value,
+            original_fee: document.getElementById('cFee').value,
+            duration: document.getElementById('cDuration').value,
+            description: document.getElementById('cDescription').value,
+            status: document.getElementById('cStatus').value,
+            instructors: selectedInstructors
+        };
+
+        const url = id ? `/admin/courses/${id}` : '{{ route("admin.courses.store") }}';
+        const method = id ? 'PUT' : 'POST';
+
+        showLoading(id ? 'Updating course...' : 'Saving course...');
+        isProcessing = true;
+
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        try {
+            const startTime = Date.now();
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 1500 - elapsed);
+
+            setTimeout(() => {
+                hideLoading();
+                isProcessing = false;
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> ' + (id ? 'Update Course' : 'Save Course');
 
                 if (result.success) {
                     showToast(result.message);
@@ -772,70 +845,80 @@
                     }
                     showToast(errorMsg);
                 }
-            } catch (error) {
-                showToast('⚠️ Error saving course');
-            }
+            }, remaining);
+
+        } catch (error) {
+            hideLoading();
+            isProcessing = false;
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> ' + (id ? 'Update Course' : 'Save Course');
+            showToast('⚠️ Error saving course');
         }
+    }
 
-        // ─── Delete Course ───
-        function deleteCourse(id) {
-            deleteId = id;
-            document.getElementById('deleteModal').classList.add('active');
-        }
+    // ─── Delete Course ───
+    function deleteCourse(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').classList.add('active');
+    }
 
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            deleteId = null;
-        }
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+        deleteId = null;
+    }
 
-        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-            if (deleteId !== null) {
-                try {
-                    const response = await fetch(`/admin/courses/${deleteId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        showToast(result.message);
-                        closeDeleteModal();
-                        loadCourses();
-                    } else {
-                        showToast('⚠️ ' + (result.message || 'Cannot delete course'));
-                        closeDeleteModal();
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        if (deleteId !== null) {
+            showLoading('Deleting course...');
+            try {
+                const response = await fetch(`/admin/courses/${deleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
-                } catch (error) {
-                    showToast('⚠️ Error deleting course');
+                });
+
+                const result = await response.json();
+
+                hideLoading();
+
+                if (result.success) {
+                    showToast(result.message);
+                    closeDeleteModal();
+                    loadCourses();
+                } else {
+                    showToast('⚠️ ' + (result.message || 'Cannot delete course'));
                     closeDeleteModal();
                 }
+            } catch (error) {
+                hideLoading();
+                showToast('⚠️ Error deleting course');
+                closeDeleteModal();
+            }
+        }
+    });
+
+    // ─── Toast ───
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ─── Close modals on overlay click ───
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
             }
         });
+    });
 
-        // ─── Toast ───
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.add('show');
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
-        }
-
-        // ─── Close modals on overlay click ───
-        document.querySelectorAll('.modal-overlay').forEach(el => {
-            el.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-
-        // ─── Init ───
-        loadCourses();
-    </script>
+    // ─── Init ───
+    loadCourses();
+</script>
 </body>
 </html>

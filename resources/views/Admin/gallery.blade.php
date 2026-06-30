@@ -246,253 +246,349 @@
 
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
-    <script>
-      // ─── FIXED: Gallery Management Script ───
-
-const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-let deleteId = null;
-
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    document.getElementById('toastMsg').textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
-}
-
-function openModal() { document.getElementById('galleryModal').classList.add('active'); }
-function closeModal() {
-    document.getElementById('galleryModal').classList.remove('active');
-    document.getElementById('galleryForm').reset();
-    document.getElementById('galleryId').value = '';
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('previewImg').src = '';
-}
-
-function handleImageUpload(input) {
-    const file = input.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('previewImg').src = e.target.result;
-            document.getElementById('previewName').textContent = file.name;
-            document.getElementById('imagePreview').style.display = 'flex';
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function removeImage() {
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('gImage').value = '';
-}
-
-function openAddModal() {
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-image" style="color:#6D4AFF;"></i> Add Gallery Image';
-    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save';
-    document.getElementById('galleryForm').reset();
-    document.getElementById('galleryId').value = '';
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('gStatus').value = '1';
-    openModal();
-}
-
-async function loadGallery() {
-    try {
-        const response = await fetch('{{ route("admin.gallery.index") }}', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await response.json();
-        const grid = document.getElementById('galleryGrid');
-        if (data.data.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#94A3B8;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></i><p>No images in gallery yet. Click "Add Image" to get started.</p></div>';
-            return;
+ <script>
+    // ─── Loading Overlay ───
+    function showLoading(message = 'Processing...') {
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                flex-direction: column;
+            `;
+            loadingOverlay.innerHTML = `
+                <div style="background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+                        <div style="position: absolute; inset: 0; border: 4px solid #EDE7FF; border-radius: 50%;"></div>
+                        <div style="position: absolute; inset: 0; border: 4px solid transparent; border-top-color: #6D4AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="position: absolute; inset: 10px; border: 4px solid transparent; border-top-color: #8B6FFF; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                        <div style="position: absolute; inset: 20px; border: 4px solid transparent; border-top-color: #D4AF37; border-radius: 50%; animation: spin 2s linear infinite;"></div>
+                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6D4AFF;">
+                            <i class="fas fa-images"></i>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0A1628; margin-bottom: 8px;">Processing</h3>
+                    <p style="font-size: 14px; color: #64748B; margin-bottom: 4px;" id="loadingMessage">${message}</p>
+                    <div style="width: 100%; height: 4px; background: #F1F5F9; border-radius: 4px; margin-top: 16px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #6D4AFF, #8B6FFF, #D4AF37); border-radius: 4px; animation: progressBar 2.5s ease-in-out infinite;" id="progressBar"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">Please wait...</p>
+                </div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes progressBar { 
+                        0% { width: 0%; } 
+                        50% { width: 70%; } 
+                        100% { width: 100%; } 
+                    }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
         }
-        grid.innerHTML = data.data.map(item => `
-            <div class="gallery-item">
-                <img src="${item.image_url || '/storage/' + item.image}" alt="${item.title}" onerror="this.src='https://placehold.co/400x300/6D4AFF/FFFFFF?text=No+Image'"/>
-                <span class="status-badge ${item.status ? '' : 'inactive'}">${item.status ? 'Active' : 'Inactive'}</span>
-                <div class="info">
-                    <div class="title">${item.title}</div>
-                    <div class="category">${item.category || 'Uncategorized'}</div>
-                    <div class="actions">
-                        <button class="btn-success" onclick="editGallery(${item.id})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-danger" onclick="confirmDelete(${item.id})"><i class="fas fa-trash"></i></button>
-                        <button class="btn-outline" onclick="toggleStatus(${item.id})" style="padding:4px 12px;font-size:11px;">
-                            ${item.status ? 'Deactivate' : 'Activate'}
-                        </button>
+        loadingOverlay.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = message;
+    }
+
+    function hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    // ─── FIXED: Gallery Management Script ───
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    let deleteId = null;
+    let isProcessing = false;
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    function openModal() { document.getElementById('galleryModal').classList.add('active'); }
+    function closeModal() {
+        document.getElementById('galleryModal').classList.remove('active');
+        document.getElementById('galleryForm').reset();
+        document.getElementById('galleryId').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('previewImg').src = '';
+    }
+
+    function handleImageUpload(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('previewName').textContent = file.name;
+                document.getElementById('imagePreview').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removeImage() {
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('gImage').value = '';
+    }
+
+    function openAddModal() {
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-image" style="color:#6D4AFF;"></i> Add Gallery Image';
+        document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save';
+        document.getElementById('galleryForm').reset();
+        document.getElementById('galleryId').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('gStatus').value = '1';
+        openModal();
+    }
+
+    async function loadGallery() {
+        try {
+            const response = await fetch('{{ route("admin.gallery.index") }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            const grid = document.getElementById('galleryGrid');
+            if (data.data.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#94A3B8;"><i class="fas fa-images" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></i><p>No images in gallery yet. Click "Add Image" to get started.</p></div>';
+                return;
+            }
+            grid.innerHTML = data.data.map(item => `
+                <div class="gallery-item">
+                    <img src="${item.image_url || '/storage/' + item.image}" alt="${item.title}" onerror="this.src='https://placehold.co/400x300/6D4AFF/FFFFFF?text=No+Image'"/>
+                    <span class="status-badge ${item.status ? '' : 'inactive'}">${item.status ? 'Active' : 'Inactive'}</span>
+                    <div class="info">
+                        <div class="title">${item.title}</div>
+                        <div class="category">${item.category || 'Uncategorized'}</div>
+                        <div class="actions">
+                            <button class="btn-success" onclick="editGallery(${item.id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-danger" onclick="confirmDelete(${item.id})"><i class="fas fa-trash"></i></button>
+                            <button class="btn-outline" onclick="toggleStatus(${item.id})" style="padding:4px 12px;font-size:11px;">
+                                ${item.status ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading gallery:', error);
-        showToast('⚠️ Error loading gallery');
-    }
-}
-
-async function editGallery(id) {
-    try {
-        const response = await fetch(`/admin/gallery/${id}/edit`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await response.json();
-        const item = data.data;
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF;"></i> Edit Gallery Image';
-        document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Update';
-        document.getElementById('galleryId').value = item.id;
-        document.getElementById('gTitle').value = item.title;
-        document.getElementById('gCategory').value = item.category || '';
-        document.getElementById('gDescription').value = item.description || '';
-        document.getElementById('gStatus').value = item.status ? '1' : '0';
-        if (item.image) {
-            document.getElementById('previewImg').src = '/storage/' + item.image;
-            document.getElementById('previewName').textContent = 'Current image';
-            document.getElementById('imagePreview').style.display = 'flex';
+            `).join('');
+        } catch (error) {
+            console.error('Error loading gallery:', error);
+            showToast('⚠️ Error loading gallery');
         }
-        openModal();
-    } catch (error) {
-        showToast('⚠️ Error loading image data');
     }
-}
 
-async function toggleStatus(id) {
-    try {
-        const response = await fetch(`/admin/gallery/${id}/toggle-status`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            }
-        });
-        const result = await response.json();
-        if (result.success) {
-            showToast(result.message);
-            loadGallery();
-        }
-    } catch (error) {
-        showToast('⚠️ Error updating status');
-    }
-}
-
-function confirmDelete(id) {
-    deleteId = id;
-    document.getElementById('deleteModal').classList.add('active');
-}
-
-document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-    if (deleteId) {
+    async function editGallery(id) {
         try {
-            const response = await fetch(`/admin/gallery/${deleteId}`, {
-                method: 'DELETE',
+            const response = await fetch(`/admin/gallery/${id}/edit`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            const item = data.data;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF;"></i> Edit Gallery Image';
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Update';
+            document.getElementById('galleryId').value = item.id;
+            document.getElementById('gTitle').value = item.title;
+            document.getElementById('gCategory').value = item.category || '';
+            document.getElementById('gDescription').value = item.description || '';
+            document.getElementById('gStatus').value = item.status ? '1' : '0';
+            if (item.image) {
+                document.getElementById('previewImg').src = '/storage/' + item.image;
+                document.getElementById('previewName').textContent = 'Current image';
+                document.getElementById('imagePreview').style.display = 'flex';
+            }
+            openModal();
+        } catch (error) {
+            showToast('⚠️ Error loading image data');
+        }
+    }
+
+    async function toggleStatus(id) {
+        if (isProcessing) return;
+        
+        showLoading('Updating status...');
+        isProcessing = true;
+        
+        try {
+            const response = await fetch(`/admin/gallery/${id}/toggle-status`, {
+                method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
                 }
             });
             const result = await response.json();
+            hideLoading();
+            isProcessing = false;
             if (result.success) {
                 showToast(result.message);
-                document.getElementById('deleteModal').classList.remove('active');
                 loadGallery();
             }
         } catch (error) {
-            showToast('⚠️ Error deleting image');
+            hideLoading();
+            isProcessing = false;
+            showToast('⚠️ Error updating status');
         }
     }
-});
 
-// ─── FIXED: Form Submission ───
-document.getElementById('galleryForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const id = document.getElementById('galleryId').value;
-    const title = document.getElementById('gTitle').value.trim();
-    const category = document.getElementById('gCategory').value.trim();
-    const description = document.getElementById('gDescription').value.trim();
-    const status = document.getElementById('gStatus').value;
-    const imageFile = document.getElementById('gImage').files[0];
-
-    // ─── Validate title ───
-    if (!title) {
-        showToast('⚠️ Title is required');
-        document.getElementById('gTitle').style.borderColor = '#EF4444';
-        setTimeout(() => {
-            document.getElementById('gTitle').style.borderColor = '';
-        }, 2000);
-        return;
+    function confirmDelete(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').classList.add('active');
     }
 
-    // ─── Validate image for new entry ───
-    if (!id && !imageFile) {
-        showToast('⚠️ Please select an image');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('category', category);
-    formData.append('description', description);
-    formData.append('status', status);
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
-
-    // For edit, use PUT method
-    const url = id ? `/admin/gallery/${id}` : '/admin/gallery/store';
-    if (id) {
-        formData.append('_method', 'PUT');
-    }
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST', // Use POST with _method override for PUT
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showToast(result.message);
-            closeModal();
-            loadGallery();
-        } else {
-            // ─── Show validation errors ───
-            const errors = result.errors || {};
-            let errorMsg = '';
-            for (const key in errors) {
-                errorMsg += `⚠️ ${errors[key].join(', ')}\n`;
-            }
-            showToast(errorMsg || '⚠️ Error saving image');
-            
-            // Highlight fields with errors
-            if (errors.title) {
-                document.getElementById('gTitle').style.borderColor = '#EF4444';
-                setTimeout(() => {
-                    document.getElementById('gTitle').style.borderColor = '';
-                }, 3000);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        if (deleteId) {
+            showLoading('Deleting image...');
+            try {
+                const response = await fetch(`/admin/gallery/${deleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const result = await response.json();
+                hideLoading();
+                if (result.success) {
+                    showToast(result.message);
+                    document.getElementById('deleteModal').classList.remove('active');
+                    loadGallery();
+                }
+            } catch (error) {
+                hideLoading();
+                showToast('⚠️ Error deleting image');
             }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('⚠️ Error saving image. Please try again.');
-    }
-});
-
-// ─── Close modals on overlay click ───
-document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', function(e) {
-        if (e.target === this) this.classList.remove('active');
     });
-});
 
-// ─── Load gallery on page load ───
-loadGallery();
-    </script>
+    // ─── FIXED: Form Submission with Loading Animation ───
+    document.getElementById('galleryForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (isProcessing) {
+            showToast('⏳ Please wait, image is being saved...');
+            return;
+        }
+
+        const id = document.getElementById('galleryId').value;
+        const title = document.getElementById('gTitle').value.trim();
+        const category = document.getElementById('gCategory').value.trim();
+        const description = document.getElementById('gDescription').value.trim();
+        const status = document.getElementById('gStatus').value;
+        const imageFile = document.getElementById('gImage').files[0];
+
+        // ─── Validate title ───
+        if (!title) {
+            showToast('⚠️ Title is required');
+            document.getElementById('gTitle').style.borderColor = '#EF4444';
+            setTimeout(() => {
+                document.getElementById('gTitle').style.borderColor = '';
+            }, 2000);
+            return;
+        }
+
+        // ─── Validate image for new entry ───
+        if (!id && !imageFile) {
+            showToast('⚠️ Please select an image');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('description', description);
+        formData.append('status', status);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        const url = id ? `/admin/gallery/${id}` : '/admin/gallery/store';
+        if (id) {
+            formData.append('_method', 'PUT');
+        }
+
+        showLoading(id ? 'Updating image...' : 'Saving image...');
+        isProcessing = true;
+
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        try {
+            const startTime = Date.now();
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 1500 - elapsed);
+
+            setTimeout(() => {
+                hideLoading();
+                isProcessing = false;
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = id ? '<i class="fas fa-save"></i> Update' : '<i class="fas fa-save"></i> Save';
+
+                if (result.success) {
+                    showToast(result.message);
+                    closeModal();
+                    loadGallery();
+                } else {
+                    const errors = result.errors || {};
+                    let errorMsg = '';
+                    for (const key in errors) {
+                        errorMsg += `⚠️ ${errors[key].join(', ')}\n`;
+                    }
+                    showToast(errorMsg || '⚠️ Error saving image');
+                    
+                    if (errors.title) {
+                        document.getElementById('gTitle').style.borderColor = '#EF4444';
+                        setTimeout(() => {
+                            document.getElementById('gTitle').style.borderColor = '';
+                        }, 3000);
+                    }
+                }
+            }, remaining);
+
+        } catch (error) {
+            hideLoading();
+            isProcessing = false;
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = id ? '<i class="fas fa-save"></i> Update' : '<i class="fas fa-save"></i> Save';
+            console.error('Error:', error);
+            showToast('⚠️ Error saving image. Please try again.');
+        }
+    });
+
+    // ─── Close modals on overlay click ───
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+    });
+
+    // ─── Load gallery on page load ───
+    loadGallery();
+</script>
 </body>
 </html>

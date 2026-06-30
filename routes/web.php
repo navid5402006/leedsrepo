@@ -247,3 +247,5 @@ Route::get('/Terms_Privacy', [PublicSideController::class, 'Terms_Privacy'])->na
 
 // Store Enquiry (AJAX)
 Route::post('/store-enquiry', [PublicSideController::class, 'storeEnquiry'])->name('store.enquiry');
+
+

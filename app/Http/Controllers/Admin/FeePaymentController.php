@@ -8,10 +8,12 @@ use App\Models\Payment;
 use App\Models\Enrollment;
 use App\Models\Student;
 use App\Models\Course;
+use App\Mail\PaymentReceiptMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class FeePaymentController extends Controller
 {
@@ -63,6 +65,7 @@ class FeePaymentController extends Controller
         DB::beginTransaction();
         try {
             $enrollment = Enrollment::with(['student', 'course'])->findOrFail($request->enrollment_id);
+            $student = $enrollment->student;
             
             // Calculate total paid for this enrollment
             $totalPaid = Payment::where('enrollment_id', $request->enrollment_id)->sum('amount');
@@ -88,11 +91,36 @@ class FeePaymentController extends Controller
                 'remarks' => $request->remarks,
             ]);
 
+            // Get all payments history for this enrollment
+                    $paymentsHistory = Payment::where('enrollment_id', $request->enrollment_id)
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        // Get settings for dynamic footer
+        $settings = \App\Models\Setting::getAllSettings();
+
+        // Send email with settings
+        if ($student->email) {
+            try {
+                Mail::to($student->email)->send(new \App\Mail\PaymentReceiptMail(
+                    $payment,
+                    $student,
+                    $enrollment,
+                    $paymentsHistory,
+                    $settings // Pass settings to email
+                ));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send payment receipt email: ' . $e->getMessage());
+            }
+        }
+
             DB::commit();
+
+            $emailStatus = $student->email ? ' Email sent to ' . $student->email : ' (No email on file)';
 
             return response()->json([
                 'success' => true,
-                'message' => 'Payment recorded successfully! Receipt #' . $receiptNo,
+                'message' => 'Payment recorded successfully! Receipt #' . $receiptNo . $emailStatus,
                 'data' => $payment
             ]);
 
@@ -214,26 +242,62 @@ class FeePaymentController extends Controller
     }
 
     /**
-     * Remove the specified payment from storage.
+     * PERMANENTLY DELETE the specified payment.
+     * No soft delete - completely removes from database.
      */
     public function destroy($id)
     {
-        DB::beginTransaction();
         try {
+            // Find the payment without soft delete scope
             $payment = Payment::findOrFail($id);
-            $payment->delete();
+            $receiptNo = $payment->receipt_no;
+            
+            // Permanently delete the payment
+            $payment->forceDelete();
 
-            DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Payment deleted successfully!'
+                'message' => "Payment #{$receiptNo} permanently deleted successfully!"
             ]);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete payment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * PERMANENTLY DELETE multiple payments.
+     * No soft delete - completely removes from database.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'exists:payments,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $count = Payment::whereIn('id', $request->ids)->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} payment(s) permanently deleted successfully!"
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete payments: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -326,5 +390,47 @@ class FeePaymentController extends Controller
             'success' => true,
             'data' => $payments
         ]);
+    }
+
+    /**
+     * Resend payment receipt email.
+     */
+    public function resendReceipt($id)
+    {
+        try {
+            $payment = Payment::with(['enrollment.student', 'enrollment.course'])->findOrFail($id);
+            $student = $payment->enrollment->student;
+            $enrollment = $payment->enrollment;
+            
+            // Get all payments history
+            $paymentsHistory = Payment::where('enrollment_id', $enrollment->id)
+                ->orderBy('payment_date', 'desc')
+                ->get();
+
+            if (!$student->email) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student has no email address on file.'
+                ], 422);
+            }
+
+            Mail::to($student->email)->send(new PaymentReceiptMail(
+                $payment,
+                $student,
+                $enrollment,
+                $paymentsHistory
+            ));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Receipt email resent successfully to ' . $student->email
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend receipt: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

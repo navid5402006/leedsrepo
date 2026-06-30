@@ -706,414 +706,502 @@
     <!-- ─── TOAST ─── -->
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">Action completed</span></div>
 
-    <script>
-        // ─── Global Variables ───
-        let payments = [];
-        let currentPage = 1;
-        const perPage = 10;
-        let deleteId = null;
-        let selectedEnrollmentId = null;
-        let enrollmentData = {};
+   <script>
+    // ─── Global Variables ───
+    let payments = [];
+    let currentPage = 1;
+    const perPage = 10;
+    let deleteId = null;
+    let selectedEnrollmentId = null;
+    let enrollmentData = {};
+    let isProcessing = false;
 
-        // ─── CSRF Token ───
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    // ─── CSRF Token ───
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // ─── Load Payments ───
-        async function loadPayments() {
-            try {
-                const response = await fetch('{{ route("admin.fee-payments.index") }}', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                payments = data.data || [];
-                renderTable();
-                updateHistory();
-            } catch (error) {
-                console.error('Error loading payments:', error);
-                showToast('⚠️ Error loading payments');
-                document.getElementById('paymentTableBody').innerHTML = `
-                    <tr><td colspan="7" style="text-align:center; padding:40px; color:#94A3B8;">
-                        <i class="fas fa-exclamation-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
-                        Failed to load payments. Please refresh the page.
-                    </td></tr>
-                `;
-            }
+    // ─── Loading Overlay ───
+    function showLoading(message = 'Processing payment...') {
+        // Check if loading overlay already exists
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                flex-direction: column;
+            `;
+            loadingOverlay.innerHTML = `
+                <div style="background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+                        <div style="position: absolute; inset: 0; border: 4px solid #EDE7FF; border-radius: 50%;"></div>
+                        <div style="position: absolute; inset: 0; border: 4px solid transparent; border-top-color: #6D4AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="position: absolute; inset: 10px; border: 4px solid transparent; border-top-color: #8B6FFF; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                        <div style="position: absolute; inset: 20px; border: 4px solid transparent; border-top-color: #D4AF37; border-radius: 50%; animation: spin 2s linear infinite;"></div>
+                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6D4AFF;">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0A1628; margin-bottom: 8px;">Processing Payment</h3>
+                    <p style="font-size: 14px; color: #64748B; margin-bottom: 4px;" id="loadingMessage">${message}</p>
+                    <div style="width: 100%; height: 4px; background: #F1F5F9; border-radius: 4px; margin-top: 16px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #6D4AFF, #8B6FFF, #D4AF37); border-radius: 4px; animation: progressBar 2.5s ease-in-out infinite;" id="progressBar"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">Please wait while we process your payment...</p>
+                </div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes progressBar { 
+                        0% { width: 0%; } 
+                        50% { width: 70%; } 
+                        100% { width: 100%; } 
+                    }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
         }
+        loadingOverlay.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = message;
+        isProcessing = true;
+    }
 
-        // ─── Render Table ───
-        function renderTable() {
-            const filtered = getFilteredPayments();
-            const total = filtered.length;
-            const totalPages = Math.ceil(total / perPage);
-            if (currentPage > totalPages) currentPage = totalPages || 1;
-            const start = (currentPage - 1) * perPage;
-            const pageData = filtered.slice(start, start + perPage);
-
-            const tbody = document.getElementById('paymentTableBody');
-            if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#94A3B8;">No payments found</td></tr>`;
-            } else {
-                tbody.innerHTML = pageData.map(p => {
-                    const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name : 'Unknown';
-                    const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name : 'Unknown';
-                    const initials = studentName.split(' ').map(w => w[0]).join('').toUpperCase();
-                    const colors = ['purple', 'blue', 'green', 'orange'];
-                    const colorIndex = (p.id || 0) % colors.length;
-                    const date = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
-                    
-                    return `
-                        <tr>
-                            <td>
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="avatar-sm ${colors[colorIndex]}">${initials}</div>
-                                    ${studentName}
-                                </div>
-                            </td>
-                            <td>${courseName}</td>
-                            <td><strong>${p.receipt_no || '-'}</strong></td>
-                            <td>PKR ${parseFloat(p.amount).toLocaleString()}</td>
-                            <td>${p.payment_method || '-'}</td>
-                            <td>${date}</td>
-                            <td>
-                                <div class="action-dropdown">
-                                    <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
-                                    <div class="dd-menu">
-                                        <a href="#" onclick="viewPayment(${p.id}); return false;"><i class="fas fa-eye"></i> View</a>
-                                        <a href="#" onclick="editPayment(${p.id}); return false;"><i class="fas fa-edit"></i> Edit</a>
-                                        <a href="#" onclick="deletePayment(${p.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-
-            document.getElementById('recordCount').textContent = `Showing ${start + 1}-${Math.min(start + perPage, total)} of ${total}`;
-            renderPagination(totalPages);
+    function hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
         }
+        isProcessing = false;
+    }
 
-        // ─── Update History ───
-        function updateHistory() {
-            const historyList = document.getElementById('historyList');
-            if (payments.length === 0) {
-                historyList.innerHTML = '<div class="history-empty">No payments found</div>';
-                return;
-            }
-            
-            const recent = payments.slice(0, 5);
-            historyList.innerHTML = recent.map(p => {
+    // ─── Load Payments ───
+    async function loadPayments() {
+        try {
+            const response = await fetch('{{ route("admin.fee-payments.index") }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            payments = data.data || [];
+            renderTable();
+            updateHistory();
+        } catch (error) {
+            console.error('Error loading payments:', error);
+            showToast('⚠️ Error loading payments');
+            document.getElementById('paymentTableBody').innerHTML = `
+                <tr><td colspan="7" style="text-align:center; padding:40px; color:#94A3B8;">
+                    <i class="fas fa-exclamation-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                    Failed to load payments. Please refresh the page.
+                </td></tr>
+            `;
+        }
+    }
+
+    // ─── Render Table ───
+    function renderTable() {
+        const filtered = getFilteredPayments();
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / perPage);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const start = (currentPage - 1) * perPage;
+        const pageData = filtered.slice(start, start + perPage);
+
+        const tbody = document.getElementById('paymentTableBody');
+        if (pageData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#94A3B8;">No payments found</td></tr>`;
+        } else {
+            tbody.innerHTML = pageData.map(p => {
                 const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name : 'Unknown';
                 const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name : 'Unknown';
+                const initials = studentName.split(' ').map(w => w[0]).join('').toUpperCase();
+                const colors = ['purple', 'blue', 'green', 'orange'];
+                const colorIndex = (p.id || 0) % colors.length;
                 const date = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+                
                 return `
-                    <div class="history-item">
-                        <div class="student-name">${studentName}</div>
-                        <span class="course-name">${courseName}</span>
-                        <span class="date">${date} • <span class="amount">PKR ${parseFloat(p.amount).toLocaleString()}</span></span>
-                        <span class="remarks">${p.payment_method} - ${p.remarks || 'No remarks'}</span>
-                    </div>
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="avatar-sm ${colors[colorIndex]}">${initials}</div>
+                                ${studentName}
+                            </div>
+                        </td>
+                        <td>${courseName}</td>
+                        <td><strong>${p.receipt_no || '-'}</strong></td>
+                        <td>PKR ${parseFloat(p.amount).toLocaleString()}</td>
+                        <td>${p.payment_method || '-'}</td>
+                        <td>${date}</td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dd-menu">
+                                    <a href="#" onclick="viewPayment(${p.id}); return false;"><i class="fas fa-eye"></i> View</a>
+                                    <a href="#" onclick="editPayment(${p.id}); return false;"><i class="fas fa-edit"></i> Edit</a>
+                                    <a href="#" onclick="deletePayment(${p.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             }).join('');
         }
 
-        // ─── Pagination ───
-        function renderPagination(totalPages) {
-            const container = document.getElementById('paginationControls');
-            if (totalPages <= 1) { container.innerHTML = ''; return; }
-            let html = '';
-            if (currentPage > 1) {
-                html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage - 1})">Prev</button>`;
-            }
-            for (let i = 1; i <= totalPages; i++) {
-                const active = i === currentPage ? 'background:#6D4AFF; color:#fff; border-color:#6D4AFF;' : '';
-                html += `<button class="btn-reset" style="padding:4px 14px; ${active}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            if (currentPage < totalPages) {
-                html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage + 1})">Next</button>`;
-            }
-            container.innerHTML = html;
-        }
+        document.getElementById('recordCount').textContent = `Showing ${start + 1}-${Math.min(start + perPage, total)} of ${total}`;
+        renderPagination(totalPages);
+    }
 
-        function goToPage(page) {
-            currentPage = page;
-            renderTable();
+    // ─── Update History ───
+    function updateHistory() {
+        const historyList = document.getElementById('historyList');
+        if (payments.length === 0) {
+            historyList.innerHTML = '<div class="history-empty">No payments found</div>';
+            return;
         }
+        
+        const recent = payments.slice(0, 5);
+        historyList.innerHTML = recent.map(p => {
+            const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name : 'Unknown';
+            const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name : 'Unknown';
+            const date = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+            return `
+                <div class="history-item">
+                    <div class="student-name">${studentName}</div>
+                    <span class="course-name">${courseName}</span>
+                    <span class="date">${date} • <span class="amount">PKR ${parseFloat(p.amount).toLocaleString()}</span></span>
+                    <span class="remarks">${p.payment_method} - ${p.remarks || 'No remarks'}</span>
+                </div>
+            `;
+        }).join('');
+    }
 
-        // ─── Filters ───
-        function getFilteredPayments() {
-            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const method = document.getElementById('filterMethod').value;
-            return payments.filter(p => {
-                const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name.toLowerCase() : '';
-                const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name.toLowerCase() : '';
-                const matchSearch = search === '' || studentName.includes(search) || courseName.includes(search);
-                const matchMethod = method === '' || (p.payment_method && p.payment_method === method);
-                return matchSearch && matchMethod;
-            });
+    // ─── Pagination ───
+    function renderPagination(totalPages) {
+        const container = document.getElementById('paginationControls');
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+        let html = '';
+        if (currentPage > 1) {
+            html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage - 1})">Prev</button>`;
         }
-
-        function filterTable() {
-            currentPage = 1;
-            renderTable();
+        for (let i = 1; i <= totalPages; i++) {
+            const active = i === currentPage ? 'background:#6D4AFF; color:#fff; border-color:#6D4AFF;' : '';
+            html += `<button class="btn-reset" style="padding:4px 14px; ${active}" onclick="goToPage(${i})">${i}</button>`;
         }
-
-        function resetFilters() {
-            document.getElementById('filterSearch').value = '';
-            document.getElementById('filterMethod').value = '';
-            document.getElementById('globalSearch').value = '';
-            filterTable();
+        if (currentPage < totalPages) {
+            html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage + 1})">Next</button>`;
         }
+        container.innerHTML = html;
+    }
 
-        // ─── Toggle Dropdown ───
-        function toggleDD(btn) {
-            const menu = btn.nextElementSibling;
-            document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
-            menu.classList.toggle('open');
-        }
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.action-dropdown')) {
-                document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
-            }
+    // ─── Filters ───
+    function getFilteredPayments() {
+        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const method = document.getElementById('filterMethod').value;
+        return payments.filter(p => {
+            const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name.toLowerCase() : '';
+            const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name.toLowerCase() : '';
+            const matchSearch = search === '' || studentName.includes(search) || courseName.includes(search);
+            const matchMethod = method === '' || (p.payment_method && p.payment_method === method);
+            return matchSearch && matchMethod;
         });
+    }
 
-        // ─── Sidebar ───
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('active');
+    function filterTable() {
+        currentPage = 1;
+        renderTable();
+    }
+
+    function resetFilters() {
+        document.getElementById('filterSearch').value = '';
+        document.getElementById('filterMethod').value = '';
+        document.getElementById('globalSearch').value = '';
+        filterTable();
+    }
+
+    // ─── Toggle Dropdown ───
+    function toggleDD(btn) {
+        const menu = btn.nextElementSibling;
+        document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+        menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-dropdown')) {
+            document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
         }
-        document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-        document.getElementById('overlay').addEventListener('click', toggleSidebar);
+    });
 
-        // ─── Profile Dropdown ───
-        const profileBtn = document.getElementById('profileBtn');
-        const profileDropdown = document.getElementById('profileDropdown');
-        profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
+    // ─── Sidebar ───
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+    document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+    document.getElementById('overlay').addEventListener('click', toggleSidebar);
+
+    // ─── Profile Dropdown ───
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
+    });
+
+    // ─── Modal Helpers ───
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+    });
+
+    // ─── Enrollment Search ───
+    function filterEnrollments(query) {
+        const dropdown = document.getElementById('enrollmentDropdown');
+        const options = dropdown.querySelectorAll('.option');
+        const search = query.toLowerCase().trim();
+        options.forEach(opt => {
+            const text = opt.textContent.toLowerCase();
+            opt.style.display = (search === '' || text.includes(search)) ? 'block' : 'none';
         });
+        dropdown.classList.add('show');
+    }
 
-        // ─── Modal Helpers ───
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        document.querySelectorAll('.modal-overlay').forEach(el => {
-            el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
-        });
+    function selectEnrollment(id, displayName, element) {
+        selectedEnrollmentId = id;
+        document.getElementById('enrollmentSearch').value = displayName;
+        document.getElementById('selectedEnrollment').value = id;
+        document.getElementById('enrollmentDropdown').classList.remove('show');
+        document.querySelectorAll('#enrollmentDropdown .option').forEach(opt => opt.classList.remove('selected'));
+        if (element) element.classList.add('selected');
+        loadEnrollmentDetails(id);
+    }
 
-        // ─── Enrollment Search ───
-        function filterEnrollments(query) {
-            const dropdown = document.getElementById('enrollmentDropdown');
-            const options = dropdown.querySelectorAll('.option');
-            const search = query.toLowerCase().trim();
-            options.forEach(opt => {
-                const text = opt.textContent.toLowerCase();
-                opt.style.display = (search === '' || text.includes(search)) ? 'block' : 'none';
-            });
-            dropdown.classList.add('show');
-        }
-
-        function selectEnrollment(id, displayName, element) {
-            selectedEnrollmentId = id;
-            document.getElementById('enrollmentSearch').value = displayName;
-            document.getElementById('selectedEnrollment').value = id;
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-select-wrapper')) {
             document.getElementById('enrollmentDropdown').classList.remove('show');
-            document.querySelectorAll('#enrollmentDropdown .option').forEach(opt => opt.classList.remove('selected'));
-            if (element) element.classList.add('selected');
-            loadEnrollmentDetails(id);
         }
+    });
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-select-wrapper')) {
-                document.getElementById('enrollmentDropdown').classList.remove('show');
+    // ─── Load Enrollment Details ───
+    async function loadEnrollmentDetails(id) {
+        try {
+            const response = await fetch(`/admin/fee-payments/enrollment/${id}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                const d = data.data;
+                enrollmentData = d;
+                
+                document.getElementById('detailStudent').textContent = d.enrollment.student.name;
+                document.getElementById('detailCourse').textContent = d.enrollment.course.name;
+                document.getElementById('detailFinalFee').textContent = 'PKR ' + parseFloat(d.enrollment.final_fee).toLocaleString();
+                document.getElementById('detailTotalPaid').textContent = 'PKR ' + parseFloat(d.total_paid).toLocaleString();
+                const remEl = document.getElementById('detailRemaining');
+                remEl.textContent = 'PKR ' + parseFloat(d.remaining).toLocaleString();
+                remEl.style.color = d.remaining === 0 ? '#10B981' : '#F59E0B';
+                
+                // Update history
+                let historyHtml = d.payments.length === 0 ? 
+                    '<div class="modal-history-item" style="color:#94A3B8; text-align:center; padding:20px 0;">No payments recorded yet</div>' :
+                    d.payments.map(p => `
+                        <div class="modal-history-item">
+                            <span class="mh-amount">PKR ${parseFloat(p.amount).toLocaleString()}</span>
+                            <span class="mh-date">${new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })} • ${p.payment_method}</span>
+                            <div style="font-size:12px; color:#64748B;">${p.remarks || 'No remarks'}</div>
+                        </div>
+                    `).join('');
+                document.getElementById('modalHistoryList').innerHTML = historyHtml;
+                
+                updateLiveCalculations();
             }
+        } catch (error) {
+            showToast('⚠️ Error loading enrollment details');
+        }
+    }
+
+    // ─── Live Calculations ───
+    function updateLiveCalculations() {
+        const amount = parseInt(document.getElementById('paymentAmount').value) || 0;
+        const remaining = parseFloat(document.getElementById('detailRemaining').textContent.replace(/[^0-9.]/g, '')) || 0;
+        
+        document.getElementById('liveAmount').textContent = 'PKR ' + amount.toLocaleString();
+        
+        const newPaid = (parseFloat(document.getElementById('detailTotalPaid').textContent.replace(/[^0-9.]/g, '')) || 0) + amount;
+        document.getElementById('liveTotalPaid').textContent = 'PKR ' + newPaid.toLocaleString();
+        
+        const newRemaining = remaining - amount;
+        const remEl = document.getElementById('liveRemaining');
+        remEl.textContent = 'PKR ' + (newRemaining > 0 ? newRemaining : 0).toLocaleString();
+        remEl.style.color = newRemaining <= 0 ? '#10B981' : '#F59E0B';
+        
+        updateReceiptPreview();
+    }
+
+    // ─── Receipt Preview ───
+    function updateReceiptPreview() {
+        const student = document.getElementById('detailStudent').textContent;
+        const course = document.getElementById('detailCourse').textContent;
+        const amount = parseInt(document.getElementById('paymentAmount').value) || 0;
+        const method = document.getElementById('paymentMethod').value || '-';
+        const date = document.getElementById('paymentDate').value;
+        const remaining = parseFloat(document.getElementById('detailRemaining').textContent.replace(/[^0-9.]/g, '')) || 0;
+        
+        document.getElementById('receiptStudent').textContent = student !== '-' ? student : '-';
+        document.getElementById('receiptCourse').textContent = course !== '-' ? course : '-';
+        document.getElementById('receiptAmount').textContent = 'PKR ' + (amount > 0 ? amount.toLocaleString() : '0');
+        document.getElementById('receiptMethod').textContent = method;
+        document.getElementById('receiptDate').textContent = date ? new Date(date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+        const newRemaining = remaining - amount;
+        document.getElementById('receiptRemaining').textContent = 'PKR ' + (newRemaining > 0 ? newRemaining : 0).toLocaleString();
+    }
+
+    // ─── PDF Download ───
+    function downloadPDF() {
+        const receiptEl = document.getElementById('receiptContent');
+        if (!receiptEl || receiptEl.textContent.includes('-')) {
+            showToast('⚠️ Please select an enrollment and enter payment details');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        html2canvas(receiptEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
+            .then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdfWidth = 190;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                doc.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
+                doc.save('receipt.pdf');
+                showToast('📄 PDF downloaded successfully!');
+            });
+    }
+
+    // ─── PNG Download ───
+    function downloadPNG() {
+        const receiptEl = document.getElementById('receiptContent');
+        if (!receiptEl || receiptEl.textContent.includes('-')) {
+            showToast('⚠️ Please select an enrollment and enter payment details');
+            return;
+        }
+        html2canvas(receiptEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
+            .then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'receipt.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('🖼️ PNG downloaded successfully!');
+            });
+    }
+
+    // ─── Print Receipt ───
+    function printReceipt() {
+        const receiptEl = document.getElementById('receiptContent');
+        if (!receiptEl || receiptEl.textContent.includes('-')) {
+            showToast('⚠️ Please select an enrollment and enter payment details');
+            return;
+        }
+        window.print();
+    }
+
+    // ─── Add Payment ───
+    document.getElementById('addPaymentBtn').addEventListener('click', () => {
+        document.getElementById('paymentForm').reset();
+        document.getElementById('paymentId').value = '';
+        document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('enrollmentSearch').value = '';
+        document.getElementById('selectedEnrollment').value = '';
+        document.getElementById('paymentAmount').value = '';
+        selectedEnrollmentId = null;
+        document.querySelectorAll('#enrollmentDropdown .option').forEach(opt => opt.classList.remove('selected'));
+        document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Record Payment';
+        
+        // Reset details
+        ['detailStudent','detailCourse','detailFinalFee','detailTotalPaid','detailRemaining'].forEach(id => {
+            document.getElementById(id).textContent = id.includes('Fee') || id.includes('Paid') || id.includes('Remaining') ? 'PKR 0' : '-';
         });
-
-        // ─── Load Enrollment Details ───
-        async function loadEnrollmentDetails(id) {
-            try {
-                const response = await fetch(`/admin/fee-payments/enrollment/${id}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                if (data.success) {
-                    const d = data.data;
-                    enrollmentData = d;
-                    
-                    document.getElementById('detailStudent').textContent = d.enrollment.student.name;
-                    document.getElementById('detailCourse').textContent = d.enrollment.course.name;
-                    document.getElementById('detailFinalFee').textContent = 'PKR ' + parseFloat(d.enrollment.final_fee).toLocaleString();
-                    document.getElementById('detailTotalPaid').textContent = 'PKR ' + parseFloat(d.total_paid).toLocaleString();
-                    const remEl = document.getElementById('detailRemaining');
-                    remEl.textContent = 'PKR ' + parseFloat(d.remaining).toLocaleString();
-                    remEl.style.color = d.remaining === 0 ? '#10B981' : '#F59E0B';
-                    
-                    // Update history
-                    let historyHtml = d.payments.length === 0 ? 
-                        '<div class="modal-history-item" style="color:#94A3B8; text-align:center; padding:20px 0;">No payments recorded yet</div>' :
-                        d.payments.map(p => `
-                            <div class="modal-history-item">
-                                <span class="mh-amount">PKR ${parseFloat(p.amount).toLocaleString()}</span>
-                                <span class="mh-date">${new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })} • ${p.payment_method}</span>
-                                <div style="font-size:12px; color:#64748B;">${p.remarks || 'No remarks'}</div>
-                            </div>
-                        `).join('');
-                    document.getElementById('modalHistoryList').innerHTML = historyHtml;
-                    
-                    updateLiveCalculations();
-                }
-            } catch (error) {
-                showToast('⚠️ Error loading enrollment details');
-            }
-        }
-
-        // ─── Live Calculations ───
-        function updateLiveCalculations() {
-            const amount = parseInt(document.getElementById('paymentAmount').value) || 0;
-            const remaining = parseFloat(document.getElementById('detailRemaining').textContent.replace(/[^0-9.]/g, '')) || 0;
-            
-            document.getElementById('liveAmount').textContent = 'PKR ' + amount.toLocaleString();
-            
-            const newPaid = (parseFloat(document.getElementById('detailTotalPaid').textContent.replace(/[^0-9.]/g, '')) || 0) + amount;
-            document.getElementById('liveTotalPaid').textContent = 'PKR ' + newPaid.toLocaleString();
-            
-            const newRemaining = remaining - amount;
-            const remEl = document.getElementById('liveRemaining');
-            remEl.textContent = 'PKR ' + (newRemaining > 0 ? newRemaining : 0).toLocaleString();
-            remEl.style.color = newRemaining <= 0 ? '#10B981' : '#F59E0B';
-            
-            updateReceiptPreview();
-        }
-
-        // ─── Receipt Preview ───
-        function updateReceiptPreview() {
-            const student = document.getElementById('detailStudent').textContent;
-            const course = document.getElementById('detailCourse').textContent;
-            const amount = parseInt(document.getElementById('paymentAmount').value) || 0;
-            const method = document.getElementById('paymentMethod').value || '-';
-            const date = document.getElementById('paymentDate').value;
-            const remaining = parseFloat(document.getElementById('detailRemaining').textContent.replace(/[^0-9.]/g, '')) || 0;
-            
-            document.getElementById('receiptStudent').textContent = student !== '-' ? student : '-';
-            document.getElementById('receiptCourse').textContent = course !== '-' ? course : '-';
-            document.getElementById('receiptAmount').textContent = 'PKR ' + (amount > 0 ? amount.toLocaleString() : '0');
-            document.getElementById('receiptMethod').textContent = method;
-            document.getElementById('receiptDate').textContent = date ? new Date(date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
-            const newRemaining = remaining - amount;
-            document.getElementById('receiptRemaining').textContent = 'PKR ' + (newRemaining > 0 ? newRemaining : 0).toLocaleString();
-        }
-
-        // ─── PDF Download ───
-        function downloadPDF() {
-            const receiptEl = document.getElementById('receiptContent');
-            if (!receiptEl || receiptEl.textContent.includes('-')) {
-                showToast('⚠️ Please select an enrollment and enter payment details');
-                return;
-            }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            html2canvas(receiptEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
-                .then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdfWidth = 190;
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    doc.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
-                    doc.save('receipt.pdf');
-                    showToast('📄 PDF downloaded successfully!');
-                });
-        }
-
-        // ─── PNG Download ───
-        function downloadPNG() {
-            const receiptEl = document.getElementById('receiptContent');
-            if (!receiptEl || receiptEl.textContent.includes('-')) {
-                showToast('⚠️ Please select an enrollment and enter payment details');
-                return;
-            }
-            html2canvas(receiptEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' })
-                .then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'receipt.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    showToast('🖼️ PNG downloaded successfully!');
-                });
-        }
-
-        // ─── Print Receipt ───
-        function printReceipt() {
-            const receiptEl = document.getElementById('receiptContent');
-            if (!receiptEl || receiptEl.textContent.includes('-')) {
-                showToast('⚠️ Please select an enrollment and enter payment details');
-                return;
-            }
-            window.print();
-        }
-
-        // ─── Add Payment ───
-        document.getElementById('addPaymentBtn').addEventListener('click', () => {
-            document.getElementById('paymentForm').reset();
-            document.getElementById('paymentId').value = '';
-            document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('enrollmentSearch').value = '';
-            document.getElementById('selectedEnrollment').value = '';
-            document.getElementById('paymentAmount').value = '';
-            selectedEnrollmentId = null;
-            document.querySelectorAll('#enrollmentDropdown .option').forEach(opt => opt.classList.remove('selected'));
-            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Record Payment';
-            
-            // Reset details
-            ['detailStudent','detailCourse','detailFinalFee','detailTotalPaid','detailRemaining'].forEach(id => {
-                document.getElementById(id).textContent = id.includes('Fee') || id.includes('Paid') || id.includes('Remaining') ? 'PKR 0' : '-';
-            });
-            document.getElementById('modalHistoryList').innerHTML = '<div class="modal-history-item" style="color:#94A3B8; text-align:center; padding:20px 0;">Select an enrollment to view history</div>';
-            ['liveAmount','liveTotalPaid','liveRemaining'].forEach(id => {
-                document.getElementById(id).textContent = 'PKR 0';
-            });
-            ['receiptStudent','receiptCourse','receiptAmount','receiptMethod','receiptDate','receiptRemaining'].forEach(id => {
-                document.getElementById(id).textContent = id.includes('Amount') || id.includes('Remaining') ? 'PKR 0' : '-';
-            });
-            
-            openModal('addPaymentModal');
+        document.getElementById('modalHistoryList').innerHTML = '<div class="modal-history-item" style="color:#94A3B8; text-align:center; padding:20px 0;">Select an enrollment to view history</div>';
+        ['liveAmount','liveTotalPaid','liveRemaining'].forEach(id => {
+            document.getElementById(id).textContent = 'PKR 0';
         });
+        ['receiptStudent','receiptCourse','receiptAmount','receiptMethod','receiptDate','receiptRemaining'].forEach(id => {
+            document.getElementById(id).textContent = id.includes('Amount') || id.includes('Remaining') ? 'PKR 0' : '-';
+        });
+        
+        openModal('addPaymentModal');
+    });
 
-        // ─── Save Payment ───
-        async function savePayment(e) {
-            e.preventDefault();
-            const id = document.getElementById('paymentId').value;
-            const enrollmentId = document.getElementById('selectedEnrollment').value;
-            const amount = parseInt(document.getElementById('paymentAmount').value);
-            const method = document.getElementById('paymentMethod').value;
-            const remarks = document.getElementById('paymentRemarks').value || '';
-            const date = document.getElementById('paymentDate').value;
+    // ─── Save Payment with Loading Animation ───
+    async function savePayment(e) {
+        e.preventDefault();
+        
+        // Don't allow multiple submissions
+        if (isProcessing) {
+            showToast('⏳ Please wait, payment is being processed...');
+            return;
+        }
+
+        const id = document.getElementById('paymentId').value;
+        const enrollmentId = document.getElementById('selectedEnrollment').value;
+        const amount = parseInt(document.getElementById('paymentAmount').value);
+        const method = document.getElementById('paymentMethod').value;
+        const remarks = document.getElementById('paymentRemarks').value || '';
+        const date = document.getElementById('paymentDate').value;
+        
+        if (!enrollmentId) { showToast('⚠️ Please select an enrollment'); return; }
+        if (!amount || amount <= 0) { showToast('⚠️ Please enter a valid amount'); return; }
+        if (!method) { showToast('⚠️ Please select a payment method'); return; }
+
+        // Show loading animation
+        showLoading(id ? 'Updating payment...' : 'Processing payment...');
+        
+        // Disable submit button
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        const formData = {
+            enrollment_id: enrollmentId,
+            amount: amount,
+            payment_method: method,
+            payment_date: date,
+            remarks: remarks
+        };
+
+        const url = id ? `/admin/fee-payments/${id}` : '{{ route("admin.fee-payments.store") }}';
+        const methodType = id ? 'PUT' : 'POST';
+
+        try {
+            // Simulate a small delay to show the animation (minimum 1.5 seconds)
+            const startTime = Date.now();
             
-            if (!enrollmentId) { showToast('⚠️ Please select an enrollment'); return; }
-            if (!amount || amount <= 0) { showToast('⚠️ Please enter a valid amount'); return; }
-            if (!method) { showToast('⚠️ Please select a payment method'); return; }
+            const response = await fetch(url, {
+                method: methodType,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            // Ensure minimum loading time (1.5 seconds for better UX)
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 1500 - elapsed);
             
-            const formData = {
-                enrollment_id: enrollmentId,
-                amount: amount,
-                payment_method: method,
-                payment_date: date,
-                remarks: remarks
-            };
-
-            const url = id ? `/admin/fee-payments/${id}` : '{{ route("admin.fee-payments.store") }}';
-            const methodType = id ? 'PUT' : 'POST';
-
-            try {
-                const response = await fetch(url, {
-                    method: methodType,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const result = await response.json();
+            setTimeout(() => {
+                hideLoading();
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> ' + (id ? 'Update Payment' : 'Record Payment');
 
                 if (result.success) {
                     showToast(result.message);
@@ -1127,112 +1215,120 @@
                         showToast('❌ ' + (result.message || 'Error saving payment'));
                     }
                 }
-            } catch (error) {
-                showToast('⚠️ Error saving payment');
-            }
-        }
+            }, remaining);
 
-        // ─── View Payment ───
-        async function viewPayment(id) {
+        } catch (error) {
+            hideLoading();
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> ' + (id ? 'Update Payment' : 'Record Payment');
+            showToast('⚠️ Error saving payment');
+        }
+    }
+
+    // ─── View Payment ───
+    async function viewPayment(id) {
+        try {
+            const response = await fetch(`/admin/fee-payments/${id}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            const p = data.data;
+            const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name : 'Unknown';
+            const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name : 'Unknown';
+            const date = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+            alert(`💳 Payment Details\n\nStudent: ${studentName}\nCourse: ${courseName}\nReceipt: ${p.receipt_no}\nAmount: PKR ${parseFloat(p.amount).toLocaleString()}\nMethod: ${p.payment_method}\nDate: ${date}\nRemarks: ${p.remarks || 'None'}`);
+        } catch (error) {
+            showToast('⚠️ Error loading payment details');
+        }
+    }
+
+    // ─── Edit Payment ───
+    async function editPayment(id) {
+        try {
+            const response = await fetch(`/admin/fee-payments/${id}/edit`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            const p = data.data;
+
+            document.getElementById('paymentId').value = p.id;
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Update Payment';
+            document.getElementById('paymentDate').value = p.payment_date || '';
+            document.getElementById('paymentAmount').value = p.amount || '';
+            document.getElementById('paymentMethod').value = p.payment_method || '';
+            document.getElementById('paymentRemarks').value = p.remarks || '';
+            
+            // Select enrollment
+            const enrollOpt = document.querySelector(`#enrollmentDropdown .option[data-value="${p.enrollment_id}"]`);
+            if (enrollOpt) {
+                selectEnrollment(p.enrollment_id, enrollOpt.textContent.trim(), enrollOpt);
+            }
+            
+            // Update modal title
+            document.querySelector('#addPaymentModal .modal-header h2').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF; margin-right:10px;"></i> Edit Payment';
+            
+            openModal('addPaymentModal');
+        } catch (error) {
+            showToast('⚠️ Error loading payment data');
+        }
+    }
+
+    // ─── Delete Payment ───
+    function deletePayment(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+        deleteId = null;
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        if (deleteId !== null) {
+            showLoading('Deleting payment...');
             try {
-                const response = await fetch(`/admin/fee-payments/${id}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                const p = data.data;
-                const studentName = p.enrollment && p.enrollment.student ? p.enrollment.student.name : 'Unknown';
-                const courseName = p.enrollment && p.enrollment.course ? p.enrollment.course.name : 'Unknown';
-                const date = p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
-                alert(`💳 Payment Details\n\nStudent: ${studentName}\nCourse: ${courseName}\nReceipt: ${p.receipt_no}\nAmount: PKR ${parseFloat(p.amount).toLocaleString()}\nMethod: ${p.payment_method}\nDate: ${date}\nRemarks: ${p.remarks || 'None'}`);
-            } catch (error) {
-                showToast('⚠️ Error loading payment details');
-            }
-        }
-
-        // ─── Edit Payment ───
-        async function editPayment(id) {
-            try {
-                const response = await fetch(`/admin/fee-payments/${id}/edit`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                const p = data.data;
-
-                document.getElementById('paymentId').value = p.id;
-                document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Update Payment';
-                document.getElementById('paymentDate').value = p.payment_date || '';
-                document.getElementById('paymentAmount').value = p.amount || '';
-                document.getElementById('paymentMethod').value = p.payment_method || '';
-                document.getElementById('paymentRemarks').value = p.remarks || '';
-                
-                // Select enrollment
-                const enrollOpt = document.querySelector(`#enrollmentDropdown .option[data-value="${p.enrollment_id}"]`);
-                if (enrollOpt) {
-                    selectEnrollment(p.enrollment_id, enrollOpt.textContent.trim(), enrollOpt);
-                }
-                
-                // Update modal title
-                document.querySelector('#addPaymentModal .modal-header h2').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF; margin-right:10px;"></i> Edit Payment';
-                
-                openModal('addPaymentModal');
-            } catch (error) {
-                showToast('⚠️ Error loading payment data');
-            }
-        }
-
-        // ─── Delete Payment ───
-        function deletePayment(id) {
-            deleteId = id;
-            document.getElementById('deleteModal').classList.add('active');
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            deleteId = null;
-        }
-
-        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-            if (deleteId !== null) {
-                try {
-                    const response = await fetch(`/admin/fee-payments/${deleteId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        showToast(result.message);
-                        closeDeleteModal();
-                        loadPayments();
-                    } else {
-                        showToast('⚠️ ' + (result.message || 'Cannot delete payment'));
-                        closeDeleteModal();
+                const response = await fetch(`/admin/fee-payments/${deleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
-                } catch (error) {
-                    showToast('⚠️ Error deleting payment');
+                });
+                const result = await response.json();
+                hideLoading();
+                if (result.success) {
+                    showToast(result.message);
+                    closeDeleteModal();
+                    loadPayments();
+                } else {
+                    showToast('⚠️ ' + (result.message || 'Cannot delete payment'));
                     closeDeleteModal();
                 }
+            } catch (error) {
+                hideLoading();
+                showToast('⚠️ Error deleting payment');
+                closeDeleteModal();
             }
-        });
-
-        // ─── Toast ───
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.add('show');
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
         }
+    });
 
-        // ─── Event Listeners ───
-        document.getElementById('paymentAmount').addEventListener('input', updateLiveCalculations);
-        document.getElementById('paymentMethod').addEventListener('change', updateReceiptPreview);
-        document.getElementById('paymentDate').addEventListener('change', updateReceiptPreview);
+    // ─── Toast ───
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
 
-        // ─── Init ───
-        loadPayments();
-    </script>
+    // ─── Event Listeners ───
+    document.getElementById('paymentAmount').addEventListener('input', updateLiveCalculations);
+    document.getElementById('paymentMethod').addEventListener('change', updateReceiptPreview);
+    document.getElementById('paymentDate').addEventListener('change', updateReceiptPreview);
+
+    // ─── Init ───
+    loadPayments();
+</script>
 </body>
 </html>

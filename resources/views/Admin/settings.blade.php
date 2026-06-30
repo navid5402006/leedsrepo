@@ -581,43 +581,7 @@
   <div class="overlay" id="overlay"></div>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-      <div class="brand-text">
-        <span class="name">Leeds<span>Institute</span></span>
-        <span class="tagline">Excellence in Education</span>
-      </div>
-    </div>
-    <ul class="sidebar-menu">
-      <li class="menu-label">Main</li>
-      <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
-      <li><a href="#"><i class="fas fa-user-graduate"></i> Students</a></li>
-      <li><a href="#"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
-      <li><a href="#"><i class="fas fa-book-open"></i> Courses</a></li>
-      <li class="menu-label">Management</li>
-      <li><a href="#"><i class="fas fa-user-plus"></i> Enrollments</a></li>
-      <li><a href="#"><i class="fas fa-dollar-sign"></i> Fee Payments</a></li>
-      <li><a href="#"><i class="fas fa-id-card"></i> Student Cards</a></li>
-      <li><a href="#"><i class="fas fa-certificate"></i> Certificates</a></li>
-      <li><a href="#"><i class="fas fa-clipboard-list"></i> Talent Test</a></li>
-      <li class="menu-label">Reports</li>
-      <li><a href="#"><i class="fas fa-chart-bar"></i> Reports</a></li>
-      <li><a href="#"><i class="fas fa-envelope"></i> Enquiries</a></li>
-      <li class="menu-label">System</li>
-      <li class="active"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
-    </ul>
-    <div class="sidebar-footer">
-      <div class="user-card" onclick="window.location.href='#'">
-        <div class="avatar">S</div>
-        <div class="info">
-          <div class="name">Super Admin</div>
-          <div class="role">Super Admin</div>
-        </div>
-        <span class="badge">Online</span>
-      </div>
-    </div>
-  </aside>
+  @include('Admin.sidebar')
 
   <!-- MAIN -->
   <div class="main">
@@ -976,8 +940,65 @@
   <!-- Toast -->
   <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">Action completed</span></div>
 
-  <script>
-    // Tab switching
+ <script>
+    // ─── Loading Overlay ───
+    function showLoading(message = 'Processing...') {
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                flex-direction: column;
+            `;
+            loadingOverlay.innerHTML = `
+                <div style="background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+                        <div style="position: absolute; inset: 0; border: 4px solid #EDE7FF; border-radius: 50%;"></div>
+                        <div style="position: absolute; inset: 0; border: 4px solid transparent; border-top-color: #6D4AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="position: absolute; inset: 10px; border: 4px solid transparent; border-top-color: #8B6FFF; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                        <div style="position: absolute; inset: 20px; border: 4px solid transparent; border-top-color: #D4AF37; border-radius: 50%; animation: spin 2s linear infinite;"></div>
+                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6D4AFF;">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0A1628; margin-bottom: 8px;">Saving Settings</h3>
+                    <p style="font-size: 14px; color: #64748B; margin-bottom: 4px;" id="loadingMessage">${message}</p>
+                    <div style="width: 100%; height: 4px; background: #F1F5F9; border-radius: 4px; margin-top: 16px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #6D4AFF, #8B6FFF, #D4AF37); border-radius: 4px; animation: progressBar 2.5s ease-in-out infinite;" id="progressBar"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">Please wait...</p>
+                </div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes progressBar { 
+                        0% { width: 0%; } 
+                        50% { width: 70%; } 
+                        100% { width: 100%; } 
+                    }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
+        }
+        loadingOverlay.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = message;
+    }
+
+    function hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    // ─── Tab switching ───
     const tabs = document.querySelectorAll('.settings-tab');
     const contents = {
       institute: document.getElementById('tab-institute'),
@@ -996,7 +1017,7 @@
       });
     });
 
-    // Image preview
+    // ─── Image preview ───
     function previewImage(input, previewId) {
       const container = document.getElementById(previewId + 'Container');
       const preview = document.getElementById(previewId);
@@ -1025,13 +1046,45 @@
       if (preview) preview.src = '#';
     }
 
-    // AJAX Form Submission
+    // ─── Toast notification ───
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ─── Update preview image ───
+    function updatePreviewImage(previewId, path) {
+      const preview = document.getElementById(previewId);
+      if (preview) {
+        preview.src = '/storage/' + path;
+        const container = document.getElementById(previewId + 'Container');
+        if (container) container.style.display = 'flex';
+      }
+    }
+
+    // ─── AJAX Form Submission with Loading Animation ───
+    let isProcessing = false;
+
     document.querySelectorAll('.settings-form').forEach(form => {
       form.addEventListener('submit', function(e) {
         e.preventDefault();
 
+        if (isProcessing) {
+          showToast('⏳ Please wait, settings are being saved...');
+          return;
+        }
+
         const btn = this.querySelector('.btn-purple');
         const originalText = btn.innerHTML;
+        
+        // Show loading overlay
+        const formName = this.id.replace('form', '');
+        showLoading(`Saving ${formName} settings...`);
+        isProcessing = true;
+
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         btn.disabled = true;
 
@@ -1044,6 +1097,8 @@
         else if (this.id === 'formContact') url = '{{ route("admin.settings.contact") }}';
         else if (this.id === 'formSocial') url = '{{ route("admin.settings.social") }}';
 
+        const startTime = Date.now();
+
         fetch(url, {
           method: 'POST',
           headers: {
@@ -1054,23 +1109,32 @@
         })
         .then(response => response.json())
         .then(data => {
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-          
-          if (data.success) {
-            showToast('✅ ' + data.message);
-            // Update preview if image was uploaded
-            if (data.data) {
-              if (data.data.logo) updatePreviewImage('logoPreview', data.data.logo);
-              if (data.data.photo) updatePreviewImage('ceoPreview', data.data.photo);
-              if (data.data.signature) updatePreviewImage('sigPreview', data.data.signature);
-              if (data.data.image) updatePreviewImage('instPreview', data.data.image);
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, 1500 - elapsed);
+
+          setTimeout(() => {
+            hideLoading();
+            isProcessing = false;
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
+            if (data.success) {
+              showToast('✅ ' + data.message);
+              // Update preview if image was uploaded
+              if (data.data) {
+                if (data.data.logo) updatePreviewImage('logoPreview', data.data.logo);
+                if (data.data.photo) updatePreviewImage('ceoPreview', data.data.photo);
+                if (data.data.signature) updatePreviewImage('sigPreview', data.data.signature);
+                if (data.data.image) updatePreviewImage('instPreview', data.data.image);
+              }
+            } else {
+              showToast('❌ ' + (data.message || 'Something went wrong'));
             }
-          } else {
-            showToast('❌ ' + (data.message || 'Something went wrong'));
-          }
+          }, remaining);
         })
         .catch(error => {
+          hideLoading();
+          isProcessing = false;
           btn.innerHTML = originalText;
           btn.disabled = false;
           showToast('❌ Network error. Please try again.');
@@ -1079,25 +1143,7 @@
       });
     });
 
-    function updatePreviewImage(previewId, path) {
-      const preview = document.getElementById(previewId);
-      if (preview) {
-        preview.src = '/storage/' + path;
-        const container = document.getElementById(previewId + 'Container');
-        if (container) container.style.display = 'flex';
-      }
-    }
-
-    // Toast notification
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      document.getElementById('toastMsg').textContent = msg;
-      toast.classList.add('show');
-      clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
-    }
-
-    // Sidebar toggle
+    // ─── Sidebar toggle ───
     document.getElementById('menuToggle').addEventListener('click', function() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('overlay').classList.toggle('active');
@@ -1107,7 +1153,7 @@
       document.getElementById('overlay').classList.remove('active');
     });
 
-    // Profile dropdown
+    // ─── Profile dropdown ───
     document.getElementById('profileBtn').addEventListener('click', function(e) {
       e.stopPropagation();
       document.getElementById('profileDropdown').classList.toggle('open');
@@ -1118,7 +1164,7 @@
       }
     });
 
-    // Reset buttons
+    // ─── Reset buttons ───
     document.querySelectorAll('.settings-form .btn-outline[type="reset"]').forEach(btn => {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -1136,6 +1182,7 @@
       });
     });
 
+    // ─── Toggle Theme ───
     function toggleTheme() {
       showToast('🌙 Dark mode coming soon!');
     }

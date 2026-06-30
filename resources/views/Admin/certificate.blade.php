@@ -325,13 +325,70 @@
 
 <script>
 // ============================================
-// FULL BACKEND INTEGRATION WITH DYNAMIC LINKS
+// CERTIFICATE MANAGEMENT - WITH LOADING ANIMATION
 // ============================================
+
+// ---- Loading Overlay ----
+function showLoading(message = 'Processing...') {
+    let loadingOverlay = document.getElementById('loadingOverlay');
+    if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loadingOverlay';
+        loadingOverlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        `;
+        loadingOverlay.innerHTML = `
+            <div style="background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+                    <div style="position: absolute; inset: 0; border: 4px solid #EDE7FF; border-radius: 50%;"></div>
+                    <div style="position: absolute; inset: 0; border: 4px solid transparent; border-top-color: #6D4AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <div style="position: absolute; inset: 10px; border: 4px solid transparent; border-top-color: #8B6FFF; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                    <div style="position: absolute; inset: 20px; border: 4px solid transparent; border-top-color: #D4AF37; border-radius: 50%; animation: spin 2s linear infinite;"></div>
+                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6D4AFF;">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 700; color: #0A1628; margin-bottom: 8px;" id="loadingTitle">Processing</h3>
+                <p style="font-size: 14px; color: #64748B; margin-bottom: 4px;" id="loadingMessage">${message}</p>
+                <div style="width: 100%; height: 4px; background: #F1F5F9; border-radius: 4px; margin-top: 16px; overflow: hidden;">
+                    <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #6D4AFF, #8B6FFF, #D4AF37); border-radius: 4px; animation: progressBar 2.5s ease-in-out infinite;" id="progressBar"></div>
+                </div>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">Please wait...</p>
+            </div>
+            <style>
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                @keyframes progressBar { 
+                    0% { width: 0%; } 
+                    50% { width: 70%; } 
+                    100% { width: 100%; } 
+                }
+            </style>
+        `;
+        document.body.appendChild(loadingOverlay);
+    }
+    loadingOverlay.style.display = 'flex';
+    document.getElementById('loadingMessage').textContent = message;
+}
+
+function hideLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
 
 // ---- Helpers ----
 function toggleSidebar() { 
-  document.getElementById('sidebar').classList.toggle('open'); 
-  document.getElementById('overlay').classList.toggle('active'); 
+    document.getElementById('sidebar').classList.toggle('open'); 
+    document.getElementById('overlay').classList.toggle('active'); 
 }
 
 document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
@@ -340,463 +397,513 @@ document.getElementById('overlay').addEventListener('click', toggleSidebar);
 const profileBtn = document.getElementById('profileBtn');
 const profileDropdown = document.getElementById('profileDropdown');
 profileBtn.addEventListener('click', function(e) { 
-  e.stopPropagation(); 
-  profileDropdown.classList.toggle('open'); 
+    e.stopPropagation(); 
+    profileDropdown.classList.toggle('open'); 
 });
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
+    if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
 });
 
 function toggleDD(btn) {
-  const menu = btn.nextElementSibling;
-  document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
-  menu.classList.toggle('open');
+    const menu = btn.nextElementSibling;
+    document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+    menu.classList.toggle('open');
 }
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.action-dropdown')) document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
+    if (!e.target.closest('.action-dropdown')) document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
 });
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+    el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
 });
 
 function showToast(msg, type = 'success') {
-  const toast = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  toast.style.borderLeftColor = type === 'success' ? '#6D4AFF' : '#DC2626';
-  toast.classList.add('show');
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.style.borderLeftColor = type === 'success' ? '#6D4AFF' : '#DC2626';
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
 function getCSRFToken() {
-  return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 }
 
 // ---- API Functions ----
 async function apiRequest(url, options = {}) {
-  const defaultOptions = {
-    headers: {
-      'X-CSRF-TOKEN': getCSRFToken(),
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+    const defaultOptions = {
+        headers: {
+            'X-CSRF-TOKEN': getCSRFToken(),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
+    const mergedOptions = { ...defaultOptions, ...options };
+
+    try {
+        const response = await fetch(url, mergedOptions);
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Request failed' }));
+            throw new Error(error.message || 'Request failed');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        showToast('⚠️ ' + error.message, 'error');
+        return null;
     }
-  };
-  const mergedOptions = { ...defaultOptions, ...options };
-  
-  try {
-    const response = await fetch(url, mergedOptions);
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new Error(error.message || 'Request failed');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('API Error:', error);
-    showToast('⚠️ ' + error.message, 'error');
-    return null;
-  }
 }
 
 // ---- Fetch Certificates ----
 let currentPage = 1;
 let totalPages = 1;
+let isProcessing = false;
 
 async function fetchCertificates(page = 1) {
-  const loading = document.getElementById('loadingIndicator');
-  loading.style.display = 'block';
-  
-  const params = new URLSearchParams({
-    page: page,
-    search: document.getElementById('searchInput').value,
-    student: document.getElementById('filterStudent').value,
-    cert_no: document.getElementById('filterCertNo').value,
-    course: document.getElementById('filterCourse').value,
-    date: document.getElementById('filterDate').value,
-    status: document.getElementById('filterStatus').value
-  });
-  
-  const result = await apiRequest(`/admin/certificates?${params.toString()}`);
-  loading.style.display = 'none';
-  
-  if (result && result.success !== false) {
-    const data = result.certificates || result;
-    renderCertificates(data);
-    updateStats(result.stats || data.stats);
-    renderPagination(data);
-    return data;
-  }
-  return null;
+    const loading = document.getElementById('loadingIndicator');
+    loading.style.display = 'block';
+
+    const params = new URLSearchParams({
+        page: page,
+        search: document.getElementById('searchInput').value,
+        student: document.getElementById('filterStudent').value,
+        cert_no: document.getElementById('filterCertNo').value,
+        course: document.getElementById('filterCourse').value,
+        date: document.getElementById('filterDate').value,
+        status: document.getElementById('filterStatus').value
+    });
+
+    const result = await apiRequest(`/admin/certificates?${params.toString()}`);
+    loading.style.display = 'none';
+
+    if (result && result.success !== false) {
+        const data = result.certificates || result;
+        renderCertificates(data);
+        updateStats(result.stats || data.stats);
+        renderPagination(data);
+        return data;
+    }
+    return null;
 }
 
 function renderCertificates(data) {
-  const tbody = document.getElementById('certTableBody');
-  tbody.innerHTML = '';
-  
-  const items = data.data || data || [];
-  
-  if (items.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#94A3B8;">No certificates found</td></tr>`;
-    document.getElementById('tableInfo').textContent = 'Showing 0 certificates';
-    return;
-  }
-  
-  items.forEach(cert => {
-    const statusClass = cert.status === 'verified' ? 'verified' : cert.status === 'pending' ? 'pending' : '';
-    const statusLabel = cert.status.charAt(0).toUpperCase() + cert.status.slice(1);
-    const issueDate = cert.issue_date ? new Date(cert.issue_date).toLocaleDateString('en-GB', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    }) : 'N/A';
-    
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><strong>${cert.certificate_no || cert.certNo || 'N/A'}</strong></td>
-      <td>${cert.student_name || cert.student || 'N/A'}</td>
-      <td>${cert.student_id || cert.studentId || 'N/A'}</td>
-      <td>${cert.course_name || cert.course || 'N/A'}</td>
-      <td>${issueDate}</td>
-      <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-      <td>
-        <div class="action-dropdown">
-          <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
-          <div class="dd-menu">
-            <a href="/admin/certificates/${cert.id}" target="_blank"><i class="fas fa-eye"></i> Preview</a>
-            <a href="/admin/certificates/${cert.id}/edit" target="_blank"><i class="fas fa-edit"></i> Edit</a>
-            <a href="#" onclick="printCertificate(${cert.id}); return false;"><i class="fas fa-print"></i> Print</a>
-            <a href="#" onclick="verifyCertificate(${cert.id}); return false;"><i class="fas fa-check-circle"></i> Verify</a>
-            <a href="#" onclick="deleteCertificate(${cert.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
-          </div>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-  
-  const total = data.total || data.length || items.length;
-  const from = data.from || 1;
-  const to = data.to || items.length;
-  document.getElementById('tableInfo').textContent = `Showing ${from}-${to} of ${total}`;
+    const tbody = document.getElementById('certTableBody');
+    tbody.innerHTML = '';
+
+    const items = data.data || data || [];
+
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#94A3B8;">No certificates found</td></tr>`;
+        document.getElementById('tableInfo').textContent = 'Showing 0 certificates';
+        return;
+    }
+
+    items.forEach(cert => {
+        const statusClass = cert.status === 'verified' ? 'verified' : cert.status === 'pending' ? 'pending' : '';
+        const statusLabel = cert.status.charAt(0).toUpperCase() + cert.status.slice(1);
+        const issueDate = cert.issue_date ? new Date(cert.issue_date).toLocaleDateString('en-GB', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric' 
+        }) : 'N/A';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${cert.certificate_no || cert.certNo || 'N/A'}</strong></td>
+            <td>${cert.student_name || cert.student || 'N/A'}</td>
+            <td>${cert.student_id || cert.studentId || 'N/A'}</td>
+            <td>${cert.course_name || cert.course || 'N/A'}</td>
+            <td>${issueDate}</td>
+            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td>
+                <div class="action-dropdown">
+                    <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="dd-menu">
+                        <a href="/admin/certificates/${cert.id}" target="_blank"><i class="fas fa-eye"></i> Preview</a>
+                        <a href="/admin/certificates/${cert.id}/edit" target="_blank"><i class="fas fa-edit"></i> Edit</a>
+                        <a href="#" onclick="printCertificate(${cert.id}); return false;"><i class="fas fa-print"></i> Print</a>
+                        <a href="#" onclick="verifyCertificate(${cert.id}); return false;"><i class="fas fa-check-circle"></i> Verify</a>
+                        <a href="#" onclick="deleteCertificate(${cert.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
+                    </div>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    const total = data.total || data.length || items.length;
+    const from = data.from || 1;
+    const to = data.to || items.length;
+    document.getElementById('tableInfo').textContent = `Showing ${from}-${to} of ${total}`;
 }
 
 function renderPagination(data) {
-  const container = document.getElementById('paginationControls');
-  container.innerHTML = '';
-  
-  const current = data.current_page || currentPage;
-  const last = data.last_page || totalPages;
-  currentPage = current;
-  totalPages = last;
-  
-  if (last <= 1) return;
-  
-  const prevBtn = document.createElement('button');
-  prevBtn.className = 'btn-reset';
-  prevBtn.style.padding = '4px 14px';
-  prevBtn.textContent = 'Prev';
-  prevBtn.disabled = current <= 1;
-  prevBtn.onclick = () => { if (current > 1) fetchCertificates(current - 1); };
-  container.appendChild(prevBtn);
-  
-  const start = Math.max(1, current - 2);
-  const end = Math.min(last, current + 2);
-  
-  if (start > 1) {
-    const firstBtn = document.createElement('button');
-    firstBtn.className = 'btn-reset';
-    firstBtn.style.padding = '4px 14px';
-    firstBtn.textContent = '1';
-    firstBtn.onclick = () => fetchCertificates(1);
-    container.appendChild(firstBtn);
-    if (start > 2) {
-      const dots = document.createElement('span');
-      dots.textContent = '...';
-      dots.style.padding = '4px 8px';
-      container.appendChild(dots);
+    const container = document.getElementById('paginationControls');
+    container.innerHTML = '';
+
+    const current = data.current_page || currentPage;
+    const last = data.last_page || totalPages;
+    currentPage = current;
+    totalPages = last;
+
+    if (last <= 1) return;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'btn-reset';
+    prevBtn.style.padding = '4px 14px';
+    prevBtn.textContent = 'Prev';
+    prevBtn.disabled = current <= 1;
+    prevBtn.onclick = () => { if (current > 1) fetchCertificates(current - 1); };
+    container.appendChild(prevBtn);
+
+    const start = Math.max(1, current - 2);
+    const end = Math.min(last, current + 2);
+
+    if (start > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.className = 'btn-reset';
+        firstBtn.style.padding = '4px 14px';
+        firstBtn.textContent = '1';
+        firstBtn.onclick = () => fetchCertificates(1);
+        container.appendChild(firstBtn);
+        if (start > 2) {
+            const dots = document.createElement('span');
+            dots.textContent = '...';
+            dots.style.padding = '4px 8px';
+            container.appendChild(dots);
+        }
     }
-  }
-  
-  for (let i = start; i <= end; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'btn-reset';
-    btn.style.padding = '4px 14px';
-    if (i === current) {
-      btn.style.background = '#6D4AFF';
-      btn.style.color = '#fff';
-      btn.style.borderColor = '#6D4AFF';
+
+    for (let i = start; i <= end; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-reset';
+        btn.style.padding = '4px 14px';
+        if (i === current) {
+            btn.style.background = '#6D4AFF';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#6D4AFF';
+        }
+        btn.textContent = i;
+        btn.onclick = () => fetchCertificates(i);
+        container.appendChild(btn);
     }
-    btn.textContent = i;
-    btn.onclick = () => fetchCertificates(i);
-    container.appendChild(btn);
-  }
-  
-  if (end < last) {
-    if (end < last - 1) {
-      const dots = document.createElement('span');
-      dots.textContent = '...';
-      dots.style.padding = '4px 8px';
-      container.appendChild(dots);
+
+    if (end < last) {
+        if (end < last - 1) {
+            const dots = document.createElement('span');
+            dots.textContent = '...';
+            dots.style.padding = '4px 8px';
+            container.appendChild(dots);
+        }
+        const lastBtn = document.createElement('button');
+        lastBtn.className = 'btn-reset';
+        lastBtn.style.padding = '4px 14px';
+        lastBtn.textContent = last;
+        lastBtn.onclick = () => fetchCertificates(last);
+        container.appendChild(lastBtn);
     }
-    const lastBtn = document.createElement('button');
-    lastBtn.className = 'btn-reset';
-    lastBtn.style.padding = '4px 14px';
-    lastBtn.textContent = last;
-    lastBtn.onclick = () => fetchCertificates(last);
-    container.appendChild(lastBtn);
-  }
-  
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'btn-reset';
-  nextBtn.style.padding = '4px 14px';
-  nextBtn.textContent = 'Next';
-  nextBtn.disabled = current >= last;
-  nextBtn.onclick = () => { if (current < last) fetchCertificates(current + 1); };
-  container.appendChild(nextBtn);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-reset';
+    nextBtn.style.padding = '4px 14px';
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = current >= last;
+    nextBtn.onclick = () => { if (current < last) fetchCertificates(current + 1); };
+    container.appendChild(nextBtn);
 }
 
 // ---- Update Stats ----
 function updateStats(stats) {
-  if (!stats) return;
-  document.getElementById('totalCount').textContent = stats.total || 0;
-  document.getElementById('monthlyCount').textContent = stats.issued_this_month || 0;
-  document.getElementById('pendingCount').textContent = stats.pending || 0;
-  document.getElementById('verifiedCount').textContent = stats.verified || 0;
+    if (!stats) return;
+    document.getElementById('totalCount').textContent = stats.total || 0;
+    document.getElementById('monthlyCount').textContent = stats.issued_this_month || 0;
+    document.getElementById('pendingCount').textContent = stats.pending || 0;
+    document.getElementById('verifiedCount').textContent = stats.verified || 0;
 }
 
 // ---- Apply Filters ----
 function applyFilters() {
-  fetchCertificates(1);
+    fetchCertificates(1);
 }
 
 function resetFilters() {
-  document.getElementById('filterStudent').value = '';
-  document.getElementById('filterCertNo').value = '';
-  document.getElementById('filterCourse').value = '';
-  document.getElementById('filterDate').value = '';
-  document.getElementById('filterStatus').value = '';
-  document.getElementById('searchInput').value = '';
-  fetchCertificates(1);
+    document.getElementById('filterStudent').value = '';
+    document.getElementById('filterCertNo').value = '';
+    document.getElementById('filterCourse').value = '';
+    document.getElementById('filterDate').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('searchInput').value = '';
+    fetchCertificates(1);
 }
 
 // ---- Print Certificate ----
 function printCertificate(id) {
-  // Open the certificate preview in a new window and trigger print
-  const url = `/admin/certificates/${id}`;
-  const printWindow = window.open(url, '_blank', 'width=800,height=600');
-  printWindow.onload = function() {
-    setTimeout(function() {
-      printWindow.print();
-    }, 1000);
-  };
+    const url = `/admin/certificates/${id}`;
+    const printWindow = window.open(url, '_blank', 'width=800,height=600');
+    printWindow.onload = function() {
+        setTimeout(function() {
+            printWindow.print();
+        }, 1000);
+    };
 }
 
 // ---- Load Students for Modal ----
 let allStudents = [];
 
 async function loadStudents(search = '') {
-  const dropdown = document.getElementById('studentDropdown');
-  dropdown.innerHTML = '<div class="option" style="color:#94A3B8;">Loading...</div>';
-  dropdown.classList.add('show');
-  
-  const url = search ? `/admin/certificates/students?search=${encodeURIComponent(search)}` : '/admin/certificates/students';
-  const result = await apiRequest(url);
-  
-  if (result) {
-    allStudents = result;
-    renderStudentOptions(result);
-  } else {
-    dropdown.innerHTML = '<div class="option" style="color:#DC2626;">Failed to load students</div>';
-  }
+    const dropdown = document.getElementById('studentDropdown');
+    dropdown.innerHTML = '<div class="option" style="color:#94A3B8;">Loading...</div>';
+    dropdown.classList.add('show');
+
+    const url = search ? `/admin/certificates/students?search=${encodeURIComponent(search)}` : '/admin/certificates/students';
+    const result = await apiRequest(url);
+
+    if (result) {
+        allStudents = result;
+        renderStudentOptions(result);
+    } else {
+        dropdown.innerHTML = '<div class="option" style="color:#DC2626;">Failed to load students</div>';
+    }
 }
 
 function renderStudentOptions(students) {
-  const dropdown = document.getElementById('studentDropdown');
-  dropdown.innerHTML = '';
-  
-  if (!students || students.length === 0) {
-    dropdown.innerHTML = '<div class="option" style="color:#94A3B8;">No students found</div>';
-    return;
-  }
-  
-  students.forEach(student => {
-    const opt = document.createElement('div');
-    opt.className = 'option';
-    opt.dataset.value = student.id;
-    opt.innerHTML = `${student.name} <span class="sub">Father: ${student.father || 'N/A'} | ID: ${student.student_id}</span>`;
-    opt.onclick = function() { selectStudent(student, this); };
-    dropdown.appendChild(opt);
-  });
+    const dropdown = document.getElementById('studentDropdown');
+    dropdown.innerHTML = '';
+
+    if (!students || students.length === 0) {
+        dropdown.innerHTML = '<div class="option" style="color:#94A3B8;">No students found</div>';
+        return;
+    }
+
+    students.forEach(student => {
+        const opt = document.createElement('div');
+        opt.className = 'option';
+        opt.dataset.value = student.id;
+        opt.innerHTML = `${student.name} <span class="sub">Father: ${student.father || 'N/A'} | ID: ${student.student_id}</span>`;
+        opt.onclick = function() { selectStudent(student, this); };
+        dropdown.appendChild(opt);
+    });
 }
 
 function filterStudentOptions(query) {
-  const dropdown = document.getElementById('studentDropdown');
-  const options = dropdown.querySelectorAll('.option');
-  const search = query.toLowerCase().trim();
-  
-  options.forEach(opt => {
-    const text = opt.textContent.toLowerCase();
-    opt.style.display = (search === '' || text.includes(search)) ? 'block' : 'none';
-  });
-  dropdown.classList.add('show');
+    const dropdown = document.getElementById('studentDropdown');
+    const options = dropdown.querySelectorAll('.option');
+    const search = query.toLowerCase().trim();
+
+    options.forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = (search === '' || text.includes(search)) ? 'block' : 'none';
+    });
+    dropdown.classList.add('show');
 }
 
 let selectedStudent = null;
 
 async function selectStudent(student, element) {
-  selectedStudent = student;
-  document.getElementById('studentSearchInput').value = student.name;
-  document.getElementById('selectedStudentValue').value = student.name;
-  document.getElementById('selectedStudentId').value = student.id;
-  document.getElementById('studentDropdown').classList.remove('show');
-  document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
-  if (element) element.classList.add('selected');
-  
-  await loadStudentData(student.id);
+    selectedStudent = student;
+    document.getElementById('studentSearchInput').value = student.name;
+    document.getElementById('selectedStudentValue').value = student.name;
+    document.getElementById('selectedStudentId').value = student.id;
+    document.getElementById('studentDropdown').classList.remove('show');
+    document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
+    if (element) element.classList.add('selected');
+
+    await loadStudentData(student.id);
 }
 
 async function loadStudentData(studentId) {
-  const result = await apiRequest(`/admin/certificates/student/${studentId}`);
-  if (result) {
-    displayStudentPreview(result);
-  }
+    const result = await apiRequest(`/admin/certificates/student/${studentId}`);
+    if (result) {
+        displayStudentPreview(result);
+    }
 }
 
 function displayStudentPreview(data) {
-  document.getElementById('previewSection').style.display = 'block';
-  document.getElementById('previewStudentName').textContent = data.name;
-  document.getElementById('previewFatherName').textContent = data.father || 'N/A';
-  document.getElementById('previewStudentId').textContent = data.student_id || data.id;
-  document.getElementById('previewRegNo').textContent = data.regNo || data.registration_no || 'N/A';
-  document.getElementById('studentIdDisplay').textContent = data.student_id || data.id;
+    document.getElementById('previewSection').style.display = 'block';
+    document.getElementById('previewStudentName').textContent = data.name;
+    document.getElementById('previewFatherName').textContent = data.father || 'N/A';
+    document.getElementById('previewStudentId').textContent = data.student_id || data.id;
+    document.getElementById('previewRegNo').textContent = data.regNo || data.registration_no || 'N/A';
+    document.getElementById('studentIdDisplay').textContent = data.student_id || data.id;
 
-  let html = '';
-  let totalCerts = 0;
-  
-  (data.enrollments || []).forEach((enroll) => {
-    const certExists = enroll.cert_exists || enroll.certExists;
-    const status = certExists ? 'existing' : 'new';
-    const statusText = certExists ? '✓ Already Issued' : 'New Certificate';
-    const statusClass = certExists ? 'existing' : 'new';
-    html += `
-      <div class="preview-item">
-        <span class="course">${enroll.course} <span style="color:#94A3B8; font-size:12px;">(${enroll.duration || 'N/A'})</span></span>
-        <span class="status-text ${statusClass}">${statusText} ${certExists ? '🔒' : '📄'}</span>
-      </div>
-    `;
-    totalCerts++;
-  });
-  
-  document.getElementById('certificatePreviewList').innerHTML = html || '<p style="color:#94A3B8;">No enrollments found</p>';
-  document.getElementById('totalCertCount').textContent = totalCerts;
-  document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
-  document.getElementById('certTitle').value = 'Certificate of Completion';
-  
-  window._selectedStudentData = data;
+    let html = '';
+    let totalCerts = 0;
+
+    (data.enrollments || []).forEach((enroll) => {
+        const certExists = enroll.cert_exists || enroll.certExists;
+        const status = certExists ? 'existing' : 'new';
+        const statusText = certExists ? '✓ Already Issued' : 'New Certificate';
+        const statusClass = certExists ? 'existing' : 'new';
+        html += `
+            <div class="preview-item">
+                <span class="course">${enroll.course} <span style="color:#94A3B8; font-size:12px;">(${enroll.duration || 'N/A'})</span></span>
+                <span class="status-text ${statusClass}">${statusText} ${certExists ? '🔒' : '📄'}</span>
+            </div>
+        `;
+        totalCerts++;
+    });
+
+    document.getElementById('certificatePreviewList').innerHTML = html || '<p style="color:#94A3B8;">No enrollments found</p>';
+    document.getElementById('totalCertCount').textContent = totalCerts;
+    document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('certTitle').value = 'Certificate of Completion';
+
+    window._selectedStudentData = data;
 }
 
-// ---- Generate Certificates ----
+// ---- Generate Certificates with Loading Animation ----
 async function generateCertificates() {
-  const data = window._selectedStudentData;
-  if (!data) {
-    showToast('⚠️ Please select a student first', 'error');
-    return;
-  }
-  
-  const newEnrollments = (data.enrollments || []).filter(e => !(e.cert_exists || e.certExists));
-  if (newEnrollments.length === 0) {
-    showToast('⚠️ All certificates already exist for this student', 'error');
-    return;
-  }
-  
-  const enrollmentIds = newEnrollments.map(e => e.id || e.enrollment_id).filter(id => id);
-  if (enrollmentIds.length === 0) {
-    showToast('⚠️ No valid enrollments found', 'error');
-    return;
-  }
-  
-  const issueDate = document.getElementById('certIssueDate').value;
-  const title = document.getElementById('certTitle').value;
-  const remarks = document.getElementById('certRemarks').value;
-  
-  const result = await apiRequest('/admin/certificates/store', {
-    method: 'POST',
-    body: JSON.stringify({
-      student_id: data.id,
-      enrollment_ids: enrollmentIds,
-      issue_date: issueDate,
-      title: title,
-      remarks: remarks
-    })
-  });
-  
-  if (result && result.success) {
-    document.getElementById('modalContent').style.display = 'none';
-    document.getElementById('successScreen').style.display = 'block';
-    document.getElementById('successCount').textContent = result.count || result.certificates?.length || 0;
-    showToast('✅ ' + result.message);
-    fetchCertificates(currentPage);
-  }
+    // Prevent multiple submissions
+    if (isProcessing) {
+        showToast('⏳ Please wait, certificates are being generated...', 'warning');
+        return;
+    }
+
+    const data = window._selectedStudentData;
+    if (!data) {
+        showToast('⚠️ Please select a student first', 'error');
+        return;
+    }
+
+    const newEnrollments = (data.enrollments || []).filter(e => !(e.cert_exists || e.certExists));
+    if (newEnrollments.length === 0) {
+        showToast('⚠️ All certificates already exist for this student', 'error');
+        return;
+    }
+
+    const enrollmentIds = newEnrollments.map(e => e.id || e.enrollment_id).filter(id => id);
+    if (enrollmentIds.length === 0) {
+        showToast('⚠️ No valid enrollments found', 'error');
+        return;
+    }
+
+    const issueDate = document.getElementById('certIssueDate').value;
+    const title = document.getElementById('certTitle').value;
+    const remarks = document.getElementById('certRemarks').value;
+
+    // Show loading animation
+    showLoading('Generating certificates...');
+    isProcessing = true;
+
+    // Disable generate button
+    const generateBtn = document.getElementById('generateCertBtn');
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+    try {
+        const startTime = Date.now();
+
+        const result = await apiRequest('/admin/certificates/store', {
+            method: 'POST',
+            body: JSON.stringify({
+                student_id: data.id,
+                enrollment_ids: enrollmentIds,
+                issue_date: issueDate,
+                title: title,
+                remarks: remarks
+            })
+        });
+
+        // Ensure minimum loading time (1.5 seconds for better UX)
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 1500 - elapsed);
+
+        setTimeout(() => {
+            hideLoading();
+            isProcessing = false;
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-check"></i> Generate Certificates';
+
+            if (result && result.success) {
+                document.getElementById('modalContent').style.display = 'none';
+                document.getElementById('successScreen').style.display = 'block';
+                document.getElementById('successCount').textContent = result.count || result.certificates?.length || 0;
+                showToast('✅ ' + result.message);
+                fetchCertificates(currentPage);
+            } else {
+                showToast('⚠️ ' + (result?.message || 'Failed to generate certificates'), 'error');
+            }
+        }, remaining);
+
+    } catch (error) {
+        hideLoading();
+        isProcessing = false;
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-check"></i> Generate Certificates';
+        showToast('⚠️ Error generating certificates', 'error');
+    }
 }
 
 // ---- Edit Certificate ----
 async function editCertificate(id) {
-  // Redirect to edit page
-  window.location.href = `/admin/certificates/${id}/edit`;
+    window.location.href = `/admin/certificates/${id}/edit`;
 }
 
 // ---- Verify Certificate ----
 async function verifyCertificate(id) {
-  if (!confirm('Mark this certificate as verified?')) return;
-  
-  const result = await apiRequest(`/admin/certificates/${id}/verify`, {
-    method: 'POST'
-  });
-  
-  if (result && result.success) {
-    showToast('✅ ' + result.message);
-    fetchCertificates(currentPage);
-  }
+    if (!confirm('Mark this certificate as verified?')) return;
+
+    showLoading('Verifying certificate...');
+    try {
+        const result = await apiRequest(`/admin/certificates/${id}/verify`, {
+            method: 'POST'
+        });
+        hideLoading();
+        if (result && result.success) {
+            showToast('✅ ' + result.message);
+            fetchCertificates(currentPage);
+        }
+    } catch (error) {
+        hideLoading();
+        showToast('⚠️ Failed to verify certificate', 'error');
+    }
 }
 
 // ---- Delete Certificate ----
 async function deleteCertificate(id) {
-  if (!confirm('Delete this certificate permanently?')) return;
-  
-  const result = await apiRequest(`/admin/certificates/${id}`, {
-    method: 'DELETE'
-  });
-  
-  if (result && result.success) {
-    showToast('🗑️ ' + result.message);
-    fetchCertificates(currentPage);
-  }
+    if (!confirm('Delete this certificate permanently?')) return;
+
+    showLoading('Deleting certificate...');
+    try {
+        const result = await apiRequest(`/admin/certificates/${id}`, {
+            method: 'DELETE'
+        });
+        hideLoading();
+        if (result && result.success) {
+            showToast('🗑️ ' + result.message);
+            fetchCertificates(currentPage);
+        }
+    } catch (error) {
+        hideLoading();
+        showToast('⚠️ Failed to delete certificate', 'error');
+    }
 }
 
 // ---- Generate Button ----
 document.getElementById('generateBtn').addEventListener('click', function() {
-  document.getElementById('studentSearchInput').value = '';
-  document.getElementById('selectedStudentValue').value = '';
-  document.getElementById('selectedStudentId').value = '';
-  document.getElementById('previewSection').style.display = 'none';
-  document.getElementById('modalContent').style.display = 'block';
-  document.getElementById('successScreen').style.display = 'none';
-  document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
-  selectedStudent = null;
-  window._selectedStudentData = null;
-  document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
-  
-  loadStudents('');
-  openModal('generateModal');
+    document.getElementById('studentSearchInput').value = '';
+    document.getElementById('selectedStudentValue').value = '';
+    document.getElementById('selectedStudentId').value = '';
+    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('modalContent').style.display = 'block';
+    document.getElementById('successScreen').style.display = 'none';
+    document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
+    selectedStudent = null;
+    window._selectedStudentData = null;
+    document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
+
+    loadStudents('');
+    openModal('generateModal');
 });
 
 // ---- Click outside dropdown ----
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.search-select-wrapper')) {
-    document.getElementById('studentDropdown').classList.remove('show');
-  }
+    if (!e.target.closest('.search-select-wrapper')) {
+        document.getElementById('studentDropdown').classList.remove('show');
+    }
 });
 
 // ---- Init ----
@@ -804,11 +911,11 @@ document.getElementById('certIssueDate').value = new Date().toISOString().split(
 fetchCertificates(1);
 
 document.getElementById('studentSearchInput').addEventListener('focus', function() {
-  if (allStudents.length === 0) {
-    loadStudents('');
-  } else {
-    document.getElementById('studentDropdown').classList.add('show');
-  }
+    if (allStudents.length === 0) {
+        loadStudents('');
+    } else {
+        document.getElementById('studentDropdown').classList.add('show');
+    }
 });
 </script>
 </body>

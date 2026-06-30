@@ -585,383 +585,462 @@
     <!-- Toast -->
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">Action completed</span></div>
 
-    <script>
-        // ─── Global Variables ───
-        let enrollments = [];
-        let currentPage = 1;
-        const perPage = 10;
-        let deleteId = null;
-        let selectedStudentId = null;
-        let selectedCourses = [];
-        let courseDiscounts = {};
-
-        // ─── CSRF Token ───
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // ─── Load Enrollments ───
-        async function loadEnrollments() {
-            try {
-                const response = await fetch('{{ route("admin.enrollments.index") }}', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                enrollments = data.data || [];
-                renderTable();
-                updateHistory();
-            } catch (error) {
-                console.error('Error loading enrollments:', error);
-                showToast('⚠️ Error loading enrollments');
-                document.getElementById('enrollmentTableBody').innerHTML = `
-                    <tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">
-                        <i class="fas fa-exclamation-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
-                        Failed to load enrollments. Please refresh the page.
-                    </td></tr>
-                `;
-            }
+   <script>
+    // ─── Loading Overlay ───
+    function showLoading(message = 'Processing...') {
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                flex-direction: column;
+            `;
+            loadingOverlay.innerHTML = `
+                <div style="background: #fff; border-radius: 20px; padding: 40px 50px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+                        <div style="position: absolute; inset: 0; border: 4px solid #EDE7FF; border-radius: 50%;"></div>
+                        <div style="position: absolute; inset: 0; border: 4px solid transparent; border-top-color: #6D4AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="position: absolute; inset: 10px; border: 4px solid transparent; border-top-color: #8B6FFF; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                        <div style="position: absolute; inset: 20px; border: 4px solid transparent; border-top-color: #D4AF37; border-radius: 50%; animation: spin 2s linear infinite;"></div>
+                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6D4AFF;">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0A1628; margin-bottom: 8px;">Processing</h3>
+                    <p style="font-size: 14px; color: #64748B; margin-bottom: 4px;" id="loadingMessage">${message}</p>
+                    <div style="width: 100%; height: 4px; background: #F1F5F9; border-radius: 4px; margin-top: 16px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #6D4AFF, #8B6FFF, #D4AF37); border-radius: 4px; animation: progressBar 2.5s ease-in-out infinite;" id="progressBar"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">Please wait...</p>
+                </div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    @keyframes progressBar { 
+                        0% { width: 0%; } 
+                        50% { width: 70%; } 
+                        100% { width: 100%; } 
+                    }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
         }
+        loadingOverlay.style.display = 'flex';
+        document.getElementById('loadingMessage').textContent = message;
+    }
 
-        // ─── Render Table ───
-        function renderTable() {
-            const filtered = getFilteredEnrollments();
-            const total = filtered.length;
-            const totalPages = Math.ceil(total / perPage);
-            if (currentPage > totalPages) currentPage = totalPages || 1;
-            const start = (currentPage - 1) * perPage;
-            const pageData = filtered.slice(start, start + perPage);
-
-            const tbody = document.getElementById('enrollmentTableBody');
-            if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">No enrollments found</td></tr>`;
-            } else {
-                tbody.innerHTML = pageData.map(e => {
-                    const statusClass = e.status || 'active';
-                    const studentName = e.student ? e.student.name : 'Unknown';
-                    const courseName = e.course ? e.course.name : 'Unknown';
-                    const initials = studentName.split(' ').map(w => w[0]).join('').toUpperCase();
-                    const colors = ['purple', 'blue', 'green', 'orange'];
-                    const colorIndex = (e.id || 0) % colors.length;
-                    
-                    return `
-                        <tr>
-                            <td>
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="avatar-sm ${colors[colorIndex]}">${initials}</div>
-                                    ${studentName}
-                                </div>
-                            </td>
-                            <td>${courseName}</td>
-                            <td>PKR ${parseFloat(e.original_fee).toLocaleString()}</td>
-                            <td>PKR ${parseFloat(e.discount || 0).toLocaleString()}</td>
-                            <td>PKR ${parseFloat(e.final_fee).toLocaleString()}</td>
-                            <td>${e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-'}</td>
-                            <td><span class="status-badge ${statusClass}">${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}</span></td>
-                            <td>
-                                <div class="action-dropdown">
-                                    <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
-                                    <div class="dd-menu">
-                                        <a href="#" onclick="viewEnrollment(${e.id}); return false;"><i class="fas fa-eye"></i> View Details</a>
-                                        <a href="#" onclick="editEnrollment(${e.id}); return false;"><i class="fas fa-edit"></i> Edit</a>
-                                        <a href="#" onclick="deleteEnrollment(${e.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-
-            document.getElementById('recordCount').textContent = `Showing ${start + 1}-${Math.min(start + perPage, total)} of ${total}`;
-            renderPagination(totalPages);
+    function hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
         }
+    }
 
-        // ─── Update History ───
-        function updateHistory() {
-            const historyList = document.getElementById('historyList');
-            if (enrollments.length === 0) {
-                historyList.innerHTML = '<div class="history-empty">No enrollments found</div>';
-                return;
-            }
-            
-            const recent = enrollments.slice(0, 5);
-            historyList.innerHTML = recent.map(e => {
+    // ─── Global Variables ───
+    let enrollments = [];
+    let currentPage = 1;
+    const perPage = 10;
+    let deleteId = null;
+    let selectedStudentId = null;
+    let selectedCourses = [];
+    let courseDiscounts = {};
+    let isProcessing = false;
+
+    // ─── CSRF Token ───
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // ─── Load Enrollments ───
+    async function loadEnrollments() {
+        try {
+            const response = await fetch('{{ route("admin.enrollments.index") }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            enrollments = data.data || [];
+            renderTable();
+            updateHistory();
+        } catch (error) {
+            console.error('Error loading enrollments:', error);
+            showToast('⚠️ Error loading enrollments');
+            document.getElementById('enrollmentTableBody').innerHTML = `
+                <tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">
+                    <i class="fas fa-exclamation-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                    Failed to load enrollments. Please refresh the page.
+                </td></tr>
+            `;
+        }
+    }
+
+    // ─── Render Table ───
+    function renderTable() {
+        const filtered = getFilteredEnrollments();
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / perPage);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const start = (currentPage - 1) * perPage;
+        const pageData = filtered.slice(start, start + perPage);
+
+        const tbody = document.getElementById('enrollmentTableBody');
+        if (pageData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:#94A3B8;">No enrollments found</td></tr>`;
+        } else {
+            tbody.innerHTML = pageData.map(e => {
+                const statusClass = e.status || 'active';
                 const studentName = e.student ? e.student.name : 'Unknown';
                 const courseName = e.course ? e.course.name : 'Unknown';
-                const date = e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+                const initials = studentName.split(' ').map(w => w[0]).join('').toUpperCase();
+                const colors = ['purple', 'blue', 'green', 'orange'];
+                const colorIndex = (e.id || 0) % colors.length;
+                
                 return `
-                    <div class="history-item">
-                        <div class="student-name">${studentName}</div>
-                        <span class="course-name">${courseName}</span>
-                        <span class="date">${date} • <span class="fee">PKR ${parseFloat(e.final_fee).toLocaleString()}</span></span>
-                    </div>
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="avatar-sm ${colors[colorIndex]}">${initials}</div>
+                                ${studentName}
+                            </div>
+                        </td>
+                        <td>${courseName}</td>
+                        <td>PKR ${parseFloat(e.original_fee).toLocaleString()}</td>
+                        <td>PKR ${parseFloat(e.discount || 0).toLocaleString()}</td>
+                        <td>PKR ${parseFloat(e.final_fee).toLocaleString()}</td>
+                        <td>${e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}</span></td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="dropdown-trigger" onclick="toggleDD(this)"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dd-menu">
+                                    <a href="#" onclick="viewEnrollment(${e.id}); return false;"><i class="fas fa-eye"></i> View Details</a>
+                                    <a href="#" onclick="editEnrollment(${e.id}); return false;"><i class="fas fa-edit"></i> Edit</a>
+                                    <a href="#" onclick="deleteEnrollment(${e.id}); return false;"><i class="fas fa-trash"></i> Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             }).join('');
         }
 
-        // ─── Pagination ───
-        function renderPagination(totalPages) {
-            const container = document.getElementById('paginationControls');
-            if (totalPages <= 1) { container.innerHTML = ''; return; }
-            let html = '';
-            if (currentPage > 1) {
-                html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage - 1})">Prev</button>`;
-            }
-            for (let i = 1; i <= totalPages; i++) {
-                const active = i === currentPage ? 'background:#6D4AFF; color:#fff; border-color:#6D4AFF;' : '';
-                html += `<button class="btn-reset" style="padding:4px 14px; ${active}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            if (currentPage < totalPages) {
-                html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage + 1})">Next</button>`;
-            }
-            container.innerHTML = html;
-        }
+        document.getElementById('recordCount').textContent = `Showing ${start + 1}-${Math.min(start + perPage, total)} of ${total}`;
+        renderPagination(totalPages);
+    }
 
-        function goToPage(page) {
-            currentPage = page;
-            renderTable();
+    // ─── Update History ───
+    function updateHistory() {
+        const historyList = document.getElementById('historyList');
+        if (enrollments.length === 0) {
+            historyList.innerHTML = '<div class="history-empty">No enrollments found</div>';
+            return;
         }
+        
+        const recent = enrollments.slice(0, 5);
+        historyList.innerHTML = recent.map(e => {
+            const studentName = e.student ? e.student.name : 'Unknown';
+            const courseName = e.course ? e.course.name : 'Unknown';
+            const date = e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+            return `
+                <div class="history-item">
+                    <div class="student-name">${studentName}</div>
+                    <span class="course-name">${courseName}</span>
+                    <span class="date">${date} • <span class="fee">PKR ${parseFloat(e.final_fee).toLocaleString()}</span></span>
+                </div>
+            `;
+        }).join('');
+    }
 
-        // ─── Filters ───
-        function getFilteredEnrollments() {
-            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const status = document.getElementById('filterStatus').value;
-            return enrollments.filter(e => {
-                const studentName = e.student ? e.student.name.toLowerCase() : '';
-                const courseName = e.course ? e.course.name.toLowerCase() : '';
-                const matchSearch = search === '' || studentName.includes(search) || courseName.includes(search);
-                const matchStatus = status === '' || (e.status && e.status === status);
-                return matchSearch && matchStatus;
-            });
+    // ─── Pagination ───
+    function renderPagination(totalPages) {
+        const container = document.getElementById('paginationControls');
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+        let html = '';
+        if (currentPage > 1) {
+            html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage - 1})">Prev</button>`;
         }
-
-        function filterTable() {
-            currentPage = 1;
-            renderTable();
+        for (let i = 1; i <= totalPages; i++) {
+            const active = i === currentPage ? 'background:#6D4AFF; color:#fff; border-color:#6D4AFF;' : '';
+            html += `<button class="btn-reset" style="padding:4px 14px; ${active}" onclick="goToPage(${i})">${i}</button>`;
         }
-
-        function resetFilters() {
-            document.getElementById('filterSearch').value = '';
-            document.getElementById('filterStatus').value = '';
-            document.getElementById('globalSearch').value = '';
-            filterTable();
+        if (currentPage < totalPages) {
+            html += `<button class="btn-reset" style="padding:4px 14px;" onclick="goToPage(${currentPage + 1})">Next</button>`;
         }
+        container.innerHTML = html;
+    }
 
-        // ─── Toggle Dropdown ───
-        function toggleDD(btn) {
-            const menu = btn.nextElementSibling;
-            document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
-            menu.classList.toggle('open');
-        }
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.action-dropdown')) {
-                document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
-            }
+    // ─── Filters ───
+    function getFilteredEnrollments() {
+        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const status = document.getElementById('filterStatus').value;
+        return enrollments.filter(e => {
+            const studentName = e.student ? e.student.name.toLowerCase() : '';
+            const courseName = e.course ? e.course.name.toLowerCase() : '';
+            const matchSearch = search === '' || studentName.includes(search) || courseName.includes(search);
+            const matchStatus = status === '' || (e.status && e.status === status);
+            return matchSearch && matchStatus;
         });
+    }
 
-        // ─── Sidebar ───
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('active');
+    function filterTable() {
+        currentPage = 1;
+        renderTable();
+    }
+
+    function resetFilters() {
+        document.getElementById('filterSearch').value = '';
+        document.getElementById('filterStatus').value = '';
+        document.getElementById('globalSearch').value = '';
+        filterTable();
+    }
+
+    // ─── Toggle Dropdown ───
+    function toggleDD(btn) {
+        const menu = btn.nextElementSibling;
+        document.querySelectorAll('.dd-menu').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+        menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-dropdown')) {
+            document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
         }
-        document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-        document.getElementById('overlay').addEventListener('click', toggleSidebar);
+    });
 
-        // ─── Profile Dropdown ───
-        const profileBtn = document.getElementById('profileBtn');
-        const profileDropdown = document.getElementById('profileDropdown');
-        profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
+    // ─── Sidebar ───
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+    }
+    document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+    document.getElementById('overlay').addEventListener('click', toggleSidebar);
+
+    // ─── Profile Dropdown ───
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    profileBtn.addEventListener('click', function(e) { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown-wrap')) profileDropdown.classList.remove('open');
+    });
+
+    // ─── Modal Helpers ───
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+    });
+
+    // ─── Student Search ───
+    function filterStudents(query) {
+        const dropdown = document.getElementById('studentDropdown');
+        const options = dropdown.querySelectorAll('.option');
+        const search = query.toLowerCase().trim();
+        options.forEach(opt => {
+            const text = opt.textContent.toLowerCase();
+            opt.style.display = (search === '' || text.includes(search)) ? 'block' : 'none';
         });
+        dropdown.classList.add('show');
+    }
 
-        // ─── Modal Helpers ───
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        document.querySelectorAll('.modal-overlay').forEach(el => {
-            el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
-        });
+    function selectStudent(name, id, element) {
+        selectedStudentId = id;
+        document.getElementById('studentSearch').value = name;
+        document.getElementById('selectedStudent').value = id;
+        document.getElementById('studentDropdown').classList.remove('show');
+        document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
+        if (element) element.classList.add('selected');
+    }
 
-        // ─── Student Search ───
-        function filterStudents(query) {
-            const dropdown = document.getElementById('studentDropdown');
-            const options = dropdown.querySelectorAll('.option');
-            const search = query.toLowerCase().trim();
-            options.forEach(opt => {
-                const text = opt.textContent.toLowerCase();
-                opt.style.display = (search === '' || text.includes(search)) ? 'block' : 'none';
-            });
-            dropdown.classList.add('show');
-        }
-
-        function selectStudent(name, id, element) {
-            selectedStudentId = id;
-            document.getElementById('studentSearch').value = name;
-            document.getElementById('selectedStudent').value = id;
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-select-wrapper')) {
             document.getElementById('studentDropdown').classList.remove('show');
-            document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
-            if (element) element.classList.add('selected');
         }
+    });
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-select-wrapper')) {
-                document.getElementById('studentDropdown').classList.remove('show');
-            }
+    // ─── Course Selection ───
+    document.querySelectorAll('#courseSelection .course-option').forEach(opt => {
+        const cb = opt.querySelector('input[type="checkbox"]');
+        cb.addEventListener('change', function() {
+            opt.classList.toggle('selected', this.checked);
+            updateCourseSelection();
         });
-
-        // ─── Course Selection ───
-        document.querySelectorAll('#courseSelection .course-option').forEach(opt => {
-            const cb = opt.querySelector('input[type="checkbox"]');
-            cb.addEventListener('change', function() {
-                opt.classList.toggle('selected', this.checked);
+        opt.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const cb = this.querySelector('input[type="checkbox"]');
+                cb.checked = !cb.checked;
+                this.classList.toggle('selected', cb.checked);
                 updateCourseSelection();
-            });
-            opt.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    const cb = this.querySelector('input[type="checkbox"]');
-                    cb.checked = !cb.checked;
-                    this.classList.toggle('selected', cb.checked);
-                    updateCourseSelection();
-                }
-            });
+            }
         });
+    });
 
-        function updateCourseSelection() {
-            const checked = document.querySelectorAll('#courseSelection .course-option input:checked');
-            selectedCourses = [];
-            checked.forEach(cb => {
-                const parent = cb.closest('.course-option');
-                selectedCourses.push({
-                    id: parseInt(cb.value),
-                    name: parent.dataset.course,
-                    fee: parseInt(parent.dataset.fee)
+    function updateCourseSelection() {
+        const checked = document.querySelectorAll('#courseSelection .course-option input:checked');
+        selectedCourses = [];
+        checked.forEach(cb => {
+            const parent = cb.closest('.course-option');
+            selectedCourses.push({
+                id: parseInt(cb.value),
+                name: parent.dataset.course,
+                fee: parseInt(parent.dataset.fee)
+            });
+            if (!courseDiscounts[parent.dataset.course]) courseDiscounts[parent.dataset.course] = 0;
+        });
+        const selectedNames = selectedCourses.map(c => c.name);
+        Object.keys(courseDiscounts).forEach(key => {
+            if (!selectedNames.includes(key)) delete courseDiscounts[key];
+        });
+        renderDiscountInputs();
+        updateFeeSummary();
+    }
+
+    function renderDiscountInputs() {
+        const container = document.getElementById('discountSection');
+        if (selectedCourses.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        let html = '<div style="font-weight:500; font-size:14px; margin-bottom:8px;">Discount per course</div>';
+        selectedCourses.forEach(c => {
+            const disc = courseDiscounts[c.name] || 0;
+            html += `
+                <div style="display:flex; align-items:center; gap:12px; background:#F8FAFC; padding:8px 14px; border-radius:10px; margin-bottom:6px; flex-wrap:wrap;">
+                    <span style="font-weight:500; min-width:140px;">${c.name}</span>
+                    <span style="color:#64748B; font-size:13px;">Original: PKR ${c.fee.toLocaleString()}</span>
+                    <label style="font-size:13px;">Discount:</label>
+                    <input type="number" value="${disc}" style="width:80px; padding:4px 8px; border-radius:6px; border:1px solid #E2E8F0; font-size:13px;" 
+                        oninput="updateDiscount('${c.name}', this.value)">
+                    <span style="font-weight:600; color:#6D4AFF;">Final: PKR ${(c.fee - disc).toLocaleString()}</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function updateDiscount(name, val) {
+        courseDiscounts[name] = parseInt(val) || 0;
+        const container = document.getElementById('discountSection');
+        const items = container.querySelectorAll('div[style*="background:#F8FAFC;"]');
+        selectedCourses.forEach((c, idx) => {
+            if (c.name === name) {
+                const disc = courseDiscounts[name] || 0;
+                const span = items[idx]?.querySelector('span[style*="font-weight:600; color:#6D4AFF;"]');
+                if (span) span.textContent = 'Final: PKR ' + (c.fee - disc).toLocaleString();
+            }
+        });
+        updateFeeSummary();
+    }
+
+    function updateFeeSummary() {
+        let totalOriginal = 0, totalDiscount = 0, totalFinal = 0;
+        selectedCourses.forEach(c => {
+            const disc = courseDiscounts[c.name] || 0;
+            totalOriginal += c.fee;
+            totalDiscount += disc;
+            totalFinal += (c.fee - disc);
+        });
+        document.getElementById('totalOriginalFee').textContent = 'PKR ' + totalOriginal.toLocaleString();
+        document.getElementById('totalDiscount').textContent = 'PKR ' + totalDiscount.toLocaleString();
+        document.getElementById('totalFinalFee').textContent = 'PKR ' + totalFinal.toLocaleString();
+    }
+
+    // ─── Add Enrollment ───
+    document.getElementById('addEnrollmentBtn').addEventListener('click', () => {
+        document.getElementById('enrollmentForm').reset();
+        document.getElementById('eDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('studentSearch').value = '';
+        document.getElementById('selectedStudent').value = '';
+        selectedStudentId = null;
+        document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
+        document.querySelectorAll('#courseSelection .course-option').forEach(opt => {
+            opt.querySelector('input[type="checkbox"]').checked = false;
+            opt.classList.remove('selected');
+        });
+        selectedCourses = [];
+        courseDiscounts = {};
+        renderDiscountInputs();
+        updateFeeSummary();
+        openModal('addEnrollmentModal');
+    });
+
+    // ─── Save Enrollment with Loading Animation ───
+    async function saveEnrollment(e) {
+        e.preventDefault();
+        
+        if (isProcessing) {
+            showToast('⏳ Please wait, enrollment is being processed...', 'warning');
+            return;
+        }
+
+        const studentId = document.getElementById('selectedStudent').value;
+        const date = document.getElementById('eDate').value;
+        
+        if (!studentId) { showToast('⚠️ Please select a student'); return; }
+        if (selectedCourses.length === 0) { showToast('⚠️ Please select at least one course'); return; }
+        
+        showLoading('Creating enrollments...');
+        isProcessing = true;
+
+        const saveBtn = document.querySelector('#addEnrollmentModal .btn-primary');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        let successCount = 0;
+        let errorMsg = '';
+        let startTime = Date.now();
+
+        for (const course of selectedCourses) {
+            const disc = courseDiscounts[course.name] || 0;
+            const finalFee = course.fee - disc;
+            
+            try {
+                const response = await fetch('{{ route("admin.enrollments.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        course_id: course.id,
+                        enrollment_date: date,
+                        original_fee: course.fee,
+                        discount: disc,
+                        final_fee: finalFee,
+                        status: 'active'
+                    })
                 });
-                if (!courseDiscounts[parent.dataset.course]) courseDiscounts[parent.dataset.course] = 0;
-            });
-            const selectedNames = selectedCourses.map(c => c.name);
-            Object.keys(courseDiscounts).forEach(key => {
-                if (!selectedNames.includes(key)) delete courseDiscounts[key];
-            });
-            renderDiscountInputs();
-            updateFeeSummary();
-        }
-
-        function renderDiscountInputs() {
-            const container = document.getElementById('discountSection');
-            if (selectedCourses.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            let html = '<div style="font-weight:500; font-size:14px; margin-bottom:8px;">Discount per course</div>';
-            selectedCourses.forEach(c => {
-                const disc = courseDiscounts[c.name] || 0;
-                html += `
-                    <div style="display:flex; align-items:center; gap:12px; background:#F8FAFC; padding:8px 14px; border-radius:10px; margin-bottom:6px; flex-wrap:wrap;">
-                        <span style="font-weight:500; min-width:140px;">${c.name}</span>
-                        <span style="color:#64748B; font-size:13px;">Original: PKR ${c.fee.toLocaleString()}</span>
-                        <label style="font-size:13px;">Discount:</label>
-                        <input type="number" value="${disc}" style="width:80px; padding:4px 8px; border-radius:6px; border:1px solid #E2E8F0; font-size:13px;" 
-                            oninput="updateDiscount('${c.name}', this.value)">
-                        <span style="font-weight:600; color:#6D4AFF;">Final: PKR ${(c.fee - disc).toLocaleString()}</span>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        function updateDiscount(name, val) {
-            courseDiscounts[name] = parseInt(val) || 0;
-            const container = document.getElementById('discountSection');
-            const items = container.querySelectorAll('div[style*="background:#F8FAFC;"]');
-            selectedCourses.forEach((c, idx) => {
-                if (c.name === name) {
-                    const disc = courseDiscounts[name] || 0;
-                    const span = items[idx]?.querySelector('span[style*="font-weight:600; color:#6D4AFF;"]');
-                    if (span) span.textContent = 'Final: PKR ' + (c.fee - disc).toLocaleString();
-                }
-            });
-            updateFeeSummary();
-        }
-
-        function updateFeeSummary() {
-            let totalOriginal = 0, totalDiscount = 0, totalFinal = 0;
-            selectedCourses.forEach(c => {
-                const disc = courseDiscounts[c.name] || 0;
-                totalOriginal += c.fee;
-                totalDiscount += disc;
-                totalFinal += (c.fee - disc);
-            });
-            document.getElementById('totalOriginalFee').textContent = 'PKR ' + totalOriginal.toLocaleString();
-            document.getElementById('totalDiscount').textContent = 'PKR ' + totalDiscount.toLocaleString();
-            document.getElementById('totalFinalFee').textContent = 'PKR ' + totalFinal.toLocaleString();
-        }
-
-        // ─── Add Enrollment ───
-        document.getElementById('addEnrollmentBtn').addEventListener('click', () => {
-            document.getElementById('enrollmentForm').reset();
-            document.getElementById('eDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('studentSearch').value = '';
-            document.getElementById('selectedStudent').value = '';
-            selectedStudentId = null;
-            document.querySelectorAll('#studentDropdown .option').forEach(opt => opt.classList.remove('selected'));
-            document.querySelectorAll('#courseSelection .course-option').forEach(opt => {
-                opt.querySelector('input[type="checkbox"]').checked = false;
-                opt.classList.remove('selected');
-            });
-            selectedCourses = [];
-            courseDiscounts = {};
-            renderDiscountInputs();
-            updateFeeSummary();
-            openModal('addEnrollmentModal');
-        });
-
-        // ─── Save Enrollment ───
-        async function saveEnrollment(e) {
-            e.preventDefault();
-            
-            const studentId = document.getElementById('selectedStudent').value;
-            const date = document.getElementById('eDate').value;
-            
-            if (!studentId) { showToast('⚠️ Please select a student'); return; }
-            if (selectedCourses.length === 0) { showToast('⚠️ Please select at least one course'); return; }
-            
-            // Save each selected course as a separate enrollment
-            let successCount = 0;
-            let errorMsg = '';
-            
-            for (const course of selectedCourses) {
-                const disc = courseDiscounts[course.name] || 0;
-                const finalFee = course.fee - disc;
                 
-                try {
-                    const response = await fetch('{{ route("admin.enrollments.store") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            student_id: studentId,
-                            course_id: course.id,
-                            enrollment_date: date,
-                            original_fee: course.fee,
-                            discount: disc,
-                            final_fee: finalFee,
-                            status: 'active'
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    if (result.success) {
-                        successCount++;
-                    } else {
-                        errorMsg = result.message || 'Error saving enrollment';
-                    }
-                } catch (error) {
-                    errorMsg = 'Error saving enrollment';
+                const result = await response.json();
+                if (result.success) {
+                    successCount++;
+                } else {
+                    errorMsg = result.message || 'Error saving enrollment';
                 }
+            } catch (error) {
+                errorMsg = 'Error saving enrollment';
             }
-            
+        }
+
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 1500 - elapsed);
+
+        setTimeout(() => {
+            hideLoading();
+            isProcessing = false;
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Enrollment';
+
             if (successCount > 0) {
                 showToast(`✅ ${successCount} enrollment(s) completed successfully!`);
                 closeModal('addEnrollmentModal');
@@ -969,119 +1048,119 @@
             } else {
                 showToast('⚠️ ' + errorMsg);
             }
-        }
+        }, remaining);
+    }
 
-        // ─── View Enrollment ───
-        async function viewEnrollment(id) {
-            try {
-                const response = await fetch(`/admin/enrollments/${id}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                const e = data.data;
-                const studentName = e.student ? e.student.name : 'Unknown';
-                const courseName = e.course ? e.course.name : 'Unknown';
-                alert(`📋 Enrollment Details\n\nStudent: ${studentName}\nCourse: ${courseName}\nOriginal Fee: PKR ${parseFloat(e.original_fee).toLocaleString()}\nDiscount: PKR ${parseFloat(e.discount || 0).toLocaleString()}\nFinal Fee: PKR ${parseFloat(e.final_fee).toLocaleString()}\nDate: ${e.enrollment_date || '-'}\nStatus: ${e.status}`);
-            } catch (error) {
-                showToast('⚠️ Error loading enrollment details');
+    // ─── View Enrollment ───
+    async function viewEnrollment(id) {
+        try {
+            const response = await fetch(`/admin/enrollments/${id}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            const e = data.data;
+            const studentName = e.student ? e.student.name : 'Unknown';
+            const courseName = e.course ? e.course.name : 'Unknown';
+            alert(`📋 Enrollment Details\n\nStudent: ${studentName}\nCourse: ${courseName}\nOriginal Fee: PKR ${parseFloat(e.original_fee).toLocaleString()}\nDiscount: PKR ${parseFloat(e.discount || 0).toLocaleString()}\nFinal Fee: PKR ${parseFloat(e.final_fee).toLocaleString()}\nDate: ${e.enrollment_date || '-'}\nStatus: ${e.status}`);
+        } catch (error) {
+            showToast('⚠️ Error loading enrollment details');
+        }
+    }
+
+    // ─── Edit Enrollment ───
+    async function editEnrollment(id) {
+        try {
+            const response = await fetch(`/admin/enrollments/${id}/edit`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            const enrollment = data.data;
+
+            const studentOpt = document.querySelector(`#studentDropdown .option[data-id="${enrollment.student_id}"]`);
+            if (studentOpt) {
+                selectStudent(enrollment.student.name, enrollment.student_id, studentOpt);
             }
-        }
 
-        // ─── Edit Enrollment ───
-        async function editEnrollment(id) {
-            try {
-                const response = await fetch(`/admin/enrollments/${id}/edit`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                const enrollment = data.data;
-
-                // Find and select student
-                const studentOpt = document.querySelector(`#studentDropdown .option[data-id="${enrollment.student_id}"]`);
-                if (studentOpt) {
-                    selectStudent(enrollment.student.name, enrollment.student_id, studentOpt);
+            document.querySelectorAll('#courseSelection .course-option').forEach(opt => {
+                const cb = opt.querySelector('input[type="checkbox"]');
+                if (parseInt(cb.value) === enrollment.course_id) {
+                    cb.checked = true;
+                    opt.classList.add('selected');
+                } else {
+                    cb.checked = false;
+                    opt.classList.remove('selected');
                 }
+            });
+            updateCourseSelection();
 
-                // Select course
-                document.querySelectorAll('#courseSelection .course-option').forEach(opt => {
-                    const cb = opt.querySelector('input[type="checkbox"]');
-                    if (parseInt(cb.value) === enrollment.course_id) {
-                        cb.checked = true;
-                        opt.classList.add('selected');
-                    } else {
-                        cb.checked = false;
-                        opt.classList.remove('selected');
+            document.getElementById('eDate').value = enrollment.enrollment_date || '';
+            if (enrollment.course) {
+                courseDiscounts[enrollment.course.name] = enrollment.discount || 0;
+                renderDiscountInputs();
+                updateFeeSummary();
+            }
+            
+            document.getElementById('enrollmentForm').dataset.editId = id;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF; margin-right:10px;"></i> Edit Enrollment';
+            document.querySelector('#addEnrollmentModal .btn-primary').innerHTML = '<i class="fas fa-save"></i> Update Enrollment';
+            
+            openModal('addEnrollmentModal');
+        } catch (error) {
+            showToast('⚠️ Error loading enrollment data');
+        }
+    }
+
+    // ─── Delete Enrollment ───
+    function deleteEnrollment(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+        deleteId = null;
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        if (deleteId !== null) {
+            showLoading('Deleting enrollment...');
+            try {
+                const response = await fetch(`/admin/enrollments/${deleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                updateCourseSelection();
-
-                document.getElementById('eDate').value = enrollment.enrollment_date || '';
-                // Set discount for the selected course
-                if (enrollment.course) {
-                    courseDiscounts[enrollment.course.name] = enrollment.discount || 0;
-                    renderDiscountInputs();
-                    updateFeeSummary();
-                }
-                
-                // Store enrollment ID for update
-                document.getElementById('enrollmentForm').dataset.editId = id;
-                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:#6D4AFF; margin-right:10px;"></i> Edit Enrollment';
-                document.querySelector('#addEnrollmentModal .btn-primary').innerHTML = '<i class="fas fa-save"></i> Update Enrollment';
-                
-                openModal('addEnrollmentModal');
-            } catch (error) {
-                showToast('⚠️ Error loading enrollment data');
-            }
-        }
-
-        // ─── Delete Enrollment ───
-        function deleteEnrollment(id) {
-            deleteId = id;
-            document.getElementById('deleteModal').classList.add('active');
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            deleteId = null;
-        }
-
-        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-            if (deleteId !== null) {
-                try {
-                    const response = await fetch(`/admin/enrollments/${deleteId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        showToast(result.message);
-                        closeDeleteModal();
-                        loadEnrollments();
-                    } else {
-                        showToast('⚠️ ' + (result.message || 'Cannot delete enrollment'));
-                        closeDeleteModal();
-                    }
-                } catch (error) {
-                    showToast('⚠️ Error deleting enrollment');
+                const result = await response.json();
+                hideLoading();
+                if (result.success) {
+                    showToast(result.message);
+                    closeDeleteModal();
+                    loadEnrollments();
+                } else {
+                    showToast('⚠️ ' + (result.message || 'Cannot delete enrollment'));
                     closeDeleteModal();
                 }
+            } catch (error) {
+                hideLoading();
+                showToast('⚠️ Error deleting enrollment');
+                closeDeleteModal();
             }
-        });
-
-        // ─── Toast ───
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.add('show');
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
         }
+    });
 
-        // ─── Init ───
-        loadEnrollments();
-    </script>
+    // ─── Toast ───
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ─── Init ───
+    loadEnrollments();
+</script>
 </body>
 </html>

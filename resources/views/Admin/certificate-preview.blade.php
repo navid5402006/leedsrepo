@@ -183,7 +183,7 @@
             position:absolute;
             top:50%;left:50%;
             transform:translate(-50%,-50%);
-            width:380px;height:380px;
+            width:70%;height:70%;
             z-index:2;pointer-events:none;
             opacity:.06;
             display:flex;align-items:center;justify-content:center;
@@ -315,7 +315,7 @@
 
         .c-presented{
             font-family:'Cormorant Garamond',serif;
-            font-size:13px;letter-spacing:4px;color:#6D4AFF;
+            font-size:18px;letter-spacing:4px;color:#6D4AFF;
             text-transform:uppercase;flex-shrink:0;margin-bottom:5px;
             font-weight:500;
         }
@@ -339,7 +339,7 @@
 
         .c-body{
             font-family:'Cormorant Garamond',serif;
-            font-size:14.5px;color:#1E293B;text-align:center;
+            font-size:20.5px;color:black;text-align:center;
             line-height:1.7;
             flex-shrink:0;
             max-width:640px;
@@ -375,7 +375,7 @@
             font-family:'Inter',sans-serif;
         }
         .c-info-item .val{
-            font-family:'Playfair Display',serif;
+            font-family:'inter',sans-serif;
             font-size:11px;font-weight:700;color:#071B3B;letter-spacing:.5px;
         }
 
@@ -390,7 +390,7 @@
         .c-sig{text-align:center;flex:1;}
         .c-sig .s-line{
             width:130px;height:0;
-            border-bottom:1.5px solid #D4AF37;
+            border-bottom:1.5px solid #000000;
             margin:0 auto 6px;
         }
         .c-sig .s-name{
